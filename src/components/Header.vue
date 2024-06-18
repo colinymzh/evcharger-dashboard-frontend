@@ -4,6 +4,7 @@
       <h1>EV Charger Dashboard</h1>
       <nav>
         <router-link to="/home">Home</router-link>
+        <router-link to="/navigation">Navigation</router-link>
         <router-link to="/statistics">Statistics</router-link>
         <router-link to="/prediction">Prediction</router-link>
       </nav>
@@ -48,4 +49,16 @@ nav a {
 nav a.router-link-active {
   color: #42b983;
 }
+
+
+h1 {
+  color: #24af50; /* 设置字体颜色为绿色 */
+  font-family: 'Arial', sans-serif; /* 可选择适合的字体 */
+  font-weight: bold; /* 字体加粗 */
+  text-align: center; /* 文字居中 */
+  margin-top: 20px; /* 上边距，根据布局需求调整 */
+  margin-bottom: 20px; /* 下边距，根据布局需求调整 */
+}
+
+
   </style>

@@ -274,10 +274,10 @@ th {
 }
 
 .station-card {
-    border: 1px solid #ccc;
+    border: 1px solid #f0f8ee;
     border-radius: 4px;
     padding: 10px;
-    background-color: #f5f5f5;
+    background-color: #e7f8e7;
 }
 
 button {
@@ -334,7 +334,7 @@ table {
 
 th,
 td {
-    border: 1px solid #ccc;
+    border: 1px solid #bcc4bc;
     padding: 8px;
     text-align: left;
 }

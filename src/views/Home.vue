@@ -55,18 +55,12 @@
             </div>
         </div>
 
-        <div class="header">
-            <button @click="exploreNearbyStations">Explore nearby charging stations</button>
-        </div>
-
-        <Map />
     </div>
 </template>
 
 <script>
 import ChargingStationTable from '@/components/ChargingStationTable.vue';
 import axios from 'axios';
-import Map from '@/components/Map.vue';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faChargingStation } from '@fortawesome/free-solid-svg-icons';
@@ -76,7 +70,6 @@ export default {
     name: 'Home',
     components: {
         ChargingStationTable,
-        Map,
         FontAwesomeIcon,
     },
     data() {
@@ -222,16 +215,7 @@ button:hover {
     background-color: #2c3e50;
 }
 
-#map-container {
-    width: 60%;
-    /* 修改这一行 */
-    height: 400px;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    margin: 0 auto;
-    /* 添加这一行 */
-}
+
 
 .table-container {
     width: 60%;

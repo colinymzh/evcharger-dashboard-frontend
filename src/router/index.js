@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
+import Navigation from '../views/Navigation.vue';
+
 
 const routes = [
     {
@@ -11,6 +13,11 @@ const routes = [
       name: 'Home',
       component: Home,
     },
+    {
+        path: '/navigation',
+        name: 'Navigation',
+        component: Navigation,
+      },
   ];
   
 
