@@ -3,15 +3,15 @@
     <div class="table-container">
       <ChargingStationTable :stations="stations" />
       <div class="pagination">
-        <button @click="goToFirstPage" :disabled="currentPage === 1">首页</button>
-        <button @click="prevPage" :disabled="currentPage === 1">上一页</button>
+        <button @click="goToFirstPage" :disabled="currentPage === 1">First Page</button>
+        <button @click="prevPage" :disabled="currentPage === 1">Last Page</button>
         <span>{{ currentPage }} / {{ totalPages }}</span>
-        <button @click="nextPage" :disabled="currentPage === totalPages">下一页</button>
+        <button @click="nextPage" :disabled="currentPage === totalPages">Next Page</button>
         <div class="goto-page">
-          跳转到页码: <input type="number" v-model.number="gotoPage" @keyup.enter="goToPage" min="1" :max="totalPages" />
+          Go To: <input type="number" v-model.number="gotoPage" @keyup.enter="goToPage" min="1" :max="totalPages" />
         </div>
         <div class="page-size">
-          每页显示:
+          Every Page:
           <select v-model="pageSize" @change="changePageSize">
             <option value="10">10</option>
             <option value="20">20</option>
