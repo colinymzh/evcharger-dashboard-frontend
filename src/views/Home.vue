@@ -3,9 +3,21 @@
     <div class="table-container">
       <ChargingStationTable :stations="stations" />
       <div class="pagination">
+        <button @click="goToFirstPage" :disabled="currentPage === 1">首页</button>
         <button @click="prevPage" :disabled="currentPage === 1">上一页</button>
         <span>{{ currentPage }} / {{ totalPages }}</span>
         <button @click="nextPage" :disabled="currentPage === totalPages">下一页</button>
+        <div class="goto-page">
+          跳转到页码: <input type="number" v-model.number="gotoPage" @keyup.enter="goToPage" min="1" :max="totalPages" />
+        </div>
+        <div class="page-size">
+          每页显示:
+          <select v-model="pageSize" @change="changePageSize">
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -47,6 +59,7 @@
         currentPage: 1, // 当前页码
         pageSize: 10, // 每页的项目数量
         totalStations: 0, // 充电站总数
+        gotoPage: 1, // 添加这一行,用于跳转到指定页码
       };
     },
 
@@ -91,6 +104,22 @@
         this.currentPage++;
         this.fetchChargingStations();
       }
+    },
+    goToFirstPage() {
+      this.currentPage = 1;
+      this.fetchChargingStations();
+    },
+
+    goToPage() {
+      if (this.gotoPage >= 1 && this.gotoPage <= this.totalPages) {
+        this.currentPage = this.gotoPage;
+        this.fetchChargingStations();
+      }
+    },
+
+    changePageSize() {
+      this.currentPage = 1;
+      this.fetchChargingStations();
     },
   },
 
@@ -158,5 +187,27 @@
 
 .pagination button {
   margin: 0 10px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.pagination button {
+  margin: 0 10px;
+}
+
+.goto-page, .page-size {
+  margin-left: 20px;
+}
+
+.goto-page input {
+  width: 50px;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
   </style>
