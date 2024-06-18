@@ -1,22 +1,39 @@
 <template>
     <div class="home">
-
-
         <div class="search-container">
+            <div class="status-message">
+                <font-awesome-icon :icon="['fas', 'charging-station']" />
+                Find a charging station
+                <button type="button" @click="clearSearchParams">Clear Filter</button>
+            </div>
+
             <form @submit.prevent="searchStations">
-                <input type="text" v-model="searchParams.city" placeholder="City" />
+                <input type="text" list="cities" v-model="searchParams.city" @input="searchStations"
+                    placeholder="Select or type a city">
+                <datalist id="cities">
+                    <option value="">All Cities</option>
+                    <option v-for="city in cities" :key="city" :value="city">{{ city }}</option>
+                </datalist>
                 <input type="text" v-model="searchParams.postcode" placeholder="Postcode" />
                 <label>
                     <input type="checkbox" v-model="searchParams.supportsFastCharging" />
                     Supports Fast Charging
                 </label>
-                <button type="button" @click="clearSearchParams">Clear</button>
+
             </form>
         </div>
 
 
-
         <div class="table-container">
+
+            <div class="status-message">
+                <font-awesome-icon :icon="['fas', 'charging-station']" />
+                Click Station Name to view charging station details
+            </div>
+            <div class="status-message">
+                <font-awesome-icon :icon="['fas', 'charging-station']" />
+                Select a charging station to check if it is currently available
+            </div>
             <ChargingStationTable :stations="stations" />
             <div class="pagination">
                 <button @click="goToFirstPage" :disabled="currentPage === 1">First Page</button>
@@ -49,108 +66,113 @@
 <script>
 import ChargingStationTable from '@/components/ChargingStationTable.vue';
 import axios from 'axios';
-import Map from '@/components/Map.vue'; // 导入新的地图组件
-
+import Map from '@/components/Map.vue';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faChargingStation } from '@fortawesome/free-solid-svg-icons';
+library.add(faChargingStation)
 
 export default {
     name: 'Home',
     components: {
         ChargingStationTable,
         Map,
+        FontAwesomeIcon,
     },
-
-
     data() {
         return {
             stations: [],
-            currentPage: 1, // 当前页码
-            pageSize: 10, // 每页的项目数量
-            totalStations: 0, // 充电站总数
-            gotoPage: 1, // 添加这一行,用于跳转到指定页码
+            currentPage: 1,
+            pageSize: 10,
+            totalStations: 0,
+            gotoPage: 1,
             searchParams: {
                 city: '',
                 postcode: '',
                 supportsFastCharging: false,
             },
+            cities: [],
         };
-
     },
-
     computed: {
         totalPages() {
             return Math.ceil(this.totalStations / this.pageSize);
         },
-
-
-
     },
-
-    created() {
-        this.fetchChargingStations(); // 在组件创建时获取充电站数据
-    },
-
     watch: {
         searchParams: {
-            handler: 'searchStations',
+            handler: 'fetchData',
             deep: true,
         },
     },
-
     methods: {
         async fetchData() {
             try {
-                const response = await axios.get(this.searchParams.city || this.searchParams.postcode || this.searchParams.supportsFastCharging
-                    ? 'http://localhost:8080/stations/filtered'
-                    : 'http://localhost:8080/stations/homepage', {
-                    params: {
-                        page: this.currentPage,
-                        size: this.pageSize,
-                        ...this.searchParams,
-                    },
+                const params = {
+                    page: this.currentPage,
+                    size: this.pageSize,
+                };
+
+                if (this.searchParams.city) {
+                    params.city = this.searchParams.city;
+                }
+
+                if (this.searchParams.postcode) {
+                    params.postcode = this.searchParams.postcode;
+                }
+
+                if (this.searchParams.supportsFastCharging) {
+                    params.supportsFastCharging = true;
+                }
+
+                const response = await axios.get('http://localhost:8080/stations/filtered', {
+                    params,
                 });
+
                 this.stations = response.data.records;
                 this.totalStations = response.data.total;
             } catch (error) {
                 console.error('Failed to fetch data:', error);
             }
         },
-
+        async fetchCities() {
+            try {
+                const response = await axios.get('http://localhost:8080/sites/cities');
+                this.cities = response.data.sort();
+            } catch (error) {
+                console.error('Failed to fetch cities:', error);
+            }
+        },
         prevPage() {
             if (this.currentPage > 1) {
                 this.currentPage--;
                 this.fetchData();
             }
         },
-
         nextPage() {
             if (this.currentPage < this.totalPages) {
                 this.currentPage++;
                 this.fetchData();
             }
         },
-
         goToFirstPage() {
             this.currentPage = 1;
             this.fetchData();
         },
-
         goToPage() {
             if (this.gotoPage >= 1 && this.gotoPage <= this.totalPages) {
                 this.currentPage = this.gotoPage;
                 this.fetchData();
             }
         },
-
         changePageSize() {
             this.currentPage = 1;
             this.fetchData();
         },
-
         searchStations() {
             this.currentPage = 1;
             this.fetchData();
         },
-
         clearSearchParams() {
             this.searchParams.city = '';
             this.searchParams.postcode = '';
@@ -159,18 +181,10 @@ export default {
             this.fetchData();
         },
     },
-
-    watch: {
-        searchParams: {
-            handler: 'fetchData',
-            deep: true,
-        },
-    },
-
     created() {
         this.fetchData();
+        this.fetchCities();
     },
-
 };
 </script>
 
@@ -265,11 +279,70 @@ button:hover {
 }
 
 .search-container {
+    width: 60%;
     margin-bottom: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-container form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
 }
 
 .search-container input[type='text'],
 .search-container button {
-    margin-right: 10px;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.search-container input[type='text'] {
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-container button {
+    background-color: #24af50;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.search-container button:hover {
+    background-color: #0056b3;
+}
+
+.search-container label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 16px;
+}
+
+.search-container input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+}
+
+.status-message {
+    font-size: 18px;
+    /* 字体大小 */
+    color: #277734;
+    /* 字体颜色，深蓝灰色 */
+    border-radius: 8px;
+    /* 边框圆角 */
+    margin: 20px auto;
+    /* 自动边距使其居中显示，上下边距20px */
+    width: 100%;
+    /* 宽度，根据需要调整 */
+    text-align: left;
+    display: block;
+    /* 设置为块级元素 */
 }
 </style>

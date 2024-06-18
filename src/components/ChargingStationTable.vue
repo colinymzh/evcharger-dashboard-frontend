@@ -422,11 +422,11 @@ th {
 }
 
 .green-button:hover {
-    background-color: #45a049;
+    background-color: #1c7921;
 }
 
 a {
-  color: #42b983; /* 将超链接的颜色设置为你喜欢的颜色 */
+  color: #1e8557; /* 将超链接的颜色设置为你喜欢的颜色 */
   text-decoration: none; /* 可选:移除默认的下划线 */
 }
 

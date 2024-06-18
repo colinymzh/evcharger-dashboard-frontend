@@ -2,6 +2,11 @@
     <header>
       <img src="@/assets/logo.png" alt="Logo" class="logo" />
       <h1>EV Charger Dashboard</h1>
+      <nav>
+        <router-link to="/home">Home</router-link>
+        <router-link to="/statistics">Statistics</router-link>
+        <router-link to="/prediction">Prediction</router-link>
+      </nav>
     </header>
   </template>
   
@@ -22,10 +27,25 @@
     z-index: 1000;
     display: flex;
     align-items: center;
+    gap: 5rem;
   }
   
   .logo {
     height: 80px;
     margin-right: 1rem;
   }
+  nav {
+  display: flex;
+  gap: 1rem;
+}
+
+nav a {
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+}
+
+nav a.router-link-active {
+  color: #42b983;
+}
   </style>
