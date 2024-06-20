@@ -8,11 +8,11 @@
             </div>
 
             <form @submit.prevent="searchStations">
-                <input type="text" list="cities" v-model="searchParams.city" @input="searchStations"
+                <input type="text" list="cities" v-model="searchParams.cityName" @input="searchStations"
                     placeholder="Select or type a city">
                 <datalist id="cities">
                     <option value="">All Cities</option>
-                    <option v-for="city in cities" :key="city" :value="city">{{ city }}</option>
+                    <option v-for="cityName in cities" :key="cityName" :value="cityName">{{ cityName }}</option>
                 </datalist>
                 <input type="text" v-model="searchParams.postcode" placeholder="Postcode" />
                 <label>
@@ -80,7 +80,7 @@ export default {
             totalStations: 0,
             gotoPage: 1,
             searchParams: {
-                city: '',
+                cityName: '',
                 postcode: '',
                 supportsFastCharging: false,
             },
@@ -106,8 +106,8 @@ export default {
                     size: this.pageSize,
                 };
 
-                if (this.searchParams.city) {
-                    params.city = this.searchParams.city;
+                if (this.searchParams.cityName) {
+                    params.cityName = this.searchParams.cityName;
                 }
 
                 if (this.searchParams.postcode) {
@@ -167,7 +167,7 @@ export default {
             this.fetchData();
         },
         clearSearchParams() {
-            this.searchParams.city = '';
+            this.searchParams.cityName = '';
             this.searchParams.postcode = '';
             this.searchParams.supportsFastCharging = false;
             this.currentPage = 1;

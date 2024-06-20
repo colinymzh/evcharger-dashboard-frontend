@@ -19,7 +19,7 @@
                         <a href="#" @click.prevent="fetchStationDetails(station.stationName)">{{ station.stationName
                             }}</a>
                     </td>
-                    <td>{{ station.city }}</td>
+                    <td>{{ station.cityName }}</td>
                     <td>{{ station.street }}</td>
                     <td>{{ station.postcode }}</td>
                 </tr>
@@ -28,7 +28,7 @@
         <div class="selected-stations-grid" v-if="selectedStations.length > 0">
             <div class="station-card" v-for="(station, index) in selectedStations" :key="index">
                 <p><strong>Station Name:</strong> {{ station.stationName }}</p>
-                <p><strong>City:</strong> {{ station.city }}</p>
+                <p><strong>City:</strong> {{ station.cityName }}</p>
                 <p><strong>Street:</strong> {{ station.street }}</p>
                 <p><strong>Postcode:</strong> {{ station.postcode }}</p>
             </div>
@@ -47,7 +47,7 @@
             <div class="modal-content">
                 <span class="close" @click="closeModal">&times;</span>
                 <h2>Station Name: {{ selectedStation.stationName }}</h2>
-                <p><strong>City:</strong> {{ selectedStation.city }}</p>
+                <p><strong>City:</strong> {{ selectedStation.cityName }}</p>
                 <p><strong>Street:</strong> {{ selectedStation.street }}</p>
                 <p><strong>Postcode:</strong> {{ selectedStation.postcode }}</p>
 
