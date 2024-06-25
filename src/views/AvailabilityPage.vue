@@ -35,24 +35,70 @@
         </tr>
       </tbody>
     </table>
+    <div v-if="availability.length > 0" class="chart-container">
+      <h2>Availability Chart</h2>
+      <line-chart :chart-data="chartData" :options="chartOptions"></line-chart>
+    </div>
   </div>
 </template>
 
 <script>
 import axios from 'axios';
+import LineChart from '@/components/LineChart.vue';
 
 export default {
   name: 'AvailabilityPage',
+  components: {
+    LineChart,
+  },
   data() {
     return {
       stationName: '',
       availability: [],
       selectedDate: null,
       connectorIds: [],
+      chartData: null,
+      chartOptions: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Hour',
+          },
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Availability',
+          },
+          min: 0,
+          max: 1,
+          ticks: {
+            stepSize: 1,
+            callback: function (value) {
+              return value === 1 ? 'Available' : 'Unavailable';
+            },
+          },
+        },
+      },
+      plugins: {
+        legend: {
+          display: true,
+        },
+      },
+      spanGaps: true, 
+    },
     };
   },
   created() {
     this.stationName = this.$route.params.stationName;
+  },
+  watch: {
+    availability() {
+      this.updateChartData();
+    },
   },
   methods: {
     async fetchAvailability() {
@@ -65,6 +111,7 @@ export default {
         });
         this.availability = response.data;
         this.connectorIds = [...new Set(response.data.map(item => item.connectorId))];
+        this.updateChartData();
       } catch (error) {
         console.error('Failed to fetch availability:', error);
       }
@@ -74,6 +121,34 @@ export default {
         item => item.hour === hour - 1 && item.connectorId === connectorId
       );
       return item ? (item.isAvailable ? 'Yes' : 'No') : '-';
+    },
+    updateChartData() {
+  const labels = Array.from({ length: 24 }, (_, i) => i + 1);
+  const datasets = this.connectorIds.map(connectorId => ({
+    label: `Connector ID: ${connectorId}`,
+    data: labels.map(hour => {
+      const item = this.availability.find(
+        item => item.hour === hour - 1 && item.connectorId === connectorId
+      );
+      return item ? (item.isAvailable ? 1 : 0) : null;
+    }),
+    borderColor: this.getRandomColor(),
+    fill: false,
+    stepped: true,
+  }));
+
+  this.chartData = {
+    labels,
+    datasets,
+  };
+},
+    getRandomColor() {
+      const letters = '0123456789ABCDEF';
+      let color = '#';
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
     },
   },
 };
@@ -119,4 +194,12 @@ export default {
   color: #ff4d4d;
   font-weight: bold;
 }
+
+.chart-container {
+  max-width: 800px;
+  margin: 0 auto;
+  height: 400px;
+  width: 100%; 
+}
+
 </style>

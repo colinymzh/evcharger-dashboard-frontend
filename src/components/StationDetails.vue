@@ -45,7 +45,7 @@
         </table>
 
 
-        <button @click="navigateToAvailabilityPage">Check Availability</button>
+        <button @click="navigateToAvailabilityPage">Check Historical Availability</button>
     </div>
 </template>
 
@@ -117,5 +117,17 @@ th {
 
 tr:hover {
     background-color: #f5f5f5;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background-color: #42b983;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
 }
 </style>
