@@ -22,34 +22,35 @@
       </thead>
       <tbody>
         <tr v-for="hour in 24" :key="hour">
-          <td>{{ hour }}</td>
+          <td>{{ hour - 1 }}</td>
           <td v-for="connectorId in connectorIds" :key="connectorId">
-            <span
-              :class="{
-                'available': getAvailabilityForHourAndConnector(hour, connectorId) === 'Yes',
-                'unavailable': getAvailabilityForHourAndConnector(hour, connectorId) === 'No',
-              }"
-              >{{ getAvailabilityForHourAndConnector(hour, connectorId) }}</span
-            >
+            <span :class="{
+              'available': getAvailabilityForHourAndConnector(hour - 1, connectorId) === 'Yes',
+              'unavailable': getAvailabilityForHourAndConnector(hour - 1, connectorId) === 'No',
+            }">{{ getAvailabilityForHourAndConnector(hour - 1, connectorId) }}</span>
           </td>
         </tr>
       </tbody>
     </table>
-    <div v-if="availability.length > 0" class="chart-container">
-      <h2>Availability Chart</h2>
-      <line-chart :chart-data="chartData" :options="chartOptions"></line-chart>
+    <div v-if="availability.length > 0" class="charts-container">
+      <div v-for="connectorId in connectorIds" :key="connectorId" class="chart-wrapper"
+        v-memo="[connectorId, availability]">
+        <h2>Availability Chart for Connector ID: {{ connectorId }}</h2>
+        <scatter-chart :chart-data="getChartDataForConnector(connectorId)" :options="chartOptions"
+          :height="250"></scatter-chart>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import axios from 'axios';
-import LineChart from '@/components/LineChart.vue';
+import ScatterChart from '@/components/ScatterChart.vue';
 
 export default {
   name: 'AvailabilityPage',
   components: {
-    LineChart,
+    ScatterChart,
   },
   data() {
     return {
@@ -57,49 +58,59 @@ export default {
       availability: [],
       selectedDate: null,
       connectorIds: [],
-      chartData: null,
       chartOptions: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: {
-          title: {
-            display: true,
-            text: 'Hour',
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            type: 'linear',
+            position: 'bottom',
+            title: {
+              display: true,
+              text: 'Hour',
+            },
+            min: 0,
+            max: 23,
+            ticks: {
+              stepSize: 1,
+            },
           },
-        },
-        y: {
-          title: {
-            display: true,
-            text: 'Availability',
-          },
-          min: 0,
-          max: 1,
-          ticks: {
-            stepSize: 1,
-            callback: function (value) {
-              return value === 1 ? 'Available' : 'Unavailable';
+          y: {
+            title: {
+              display: true,
+              text: 'Availability',
+            },
+            min: -0.5,
+            max: 1.5,
+            ticks: {
+              stepSize: 1,
+              callback: function (value) {
+                return value === 1 ? 'Available' : (value === 0 ? 'Unavailable' : '');
+              },
             },
           },
         },
-      },
-      plugins: {
-        legend: {
-          display: true,
+        plugins: {
+          legend: {
+            display: false,
+          },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                const hour = context.parsed.x;
+                const status = context.parsed.y === 1 ? 'Available' : 'Unavailable';
+                return `Hour ${hour}: ${status}`;
+              }
+            }
+          }
         },
       },
-      spanGaps: true, 
-    },
     };
   },
   created() {
     this.stationName = this.$route.params.stationName;
   },
-  watch: {
-    availability() {
-      this.updateChartData();
-    },
-  },
+
   methods: {
     async fetchAvailability() {
       try {
@@ -111,37 +122,33 @@ export default {
         });
         this.availability = response.data;
         this.connectorIds = [...new Set(response.data.map(item => item.connectorId))];
-        this.updateChartData();
       } catch (error) {
         console.error('Failed to fetch availability:', error);
       }
     },
     getAvailabilityForHourAndConnector(hour, connectorId) {
       const item = this.availability.find(
-        item => item.hour === hour - 1 && item.connectorId === connectorId
+        item => item.hour === hour && item.connectorId === connectorId
       );
       return item ? (item.isAvailable ? 'Yes' : 'No') : '-';
     },
-    updateChartData() {
-  const labels = Array.from({ length: 24 }, (_, i) => i + 1);
-  const datasets = this.connectorIds.map(connectorId => ({
-    label: `Connector ID: ${connectorId}`,
-    data: labels.map(hour => {
-      const item = this.availability.find(
-        item => item.hour === hour - 1 && item.connectorId === connectorId
-      );
-      return item ? (item.isAvailable ? 1 : 0) : null;
-    }),
-    borderColor: this.getRandomColor(),
-    fill: false,
-    stepped: true,
-  }));
+    getChartDataForConnector(connectorId) {
+      const data = this.availability
+        .filter(item => item.connectorId === connectorId)
+        .map(item => ({
+          x: item.hour,
+          y: item.isAvailable ? 1 : 0
+        }));
 
-  this.chartData = {
-    labels,
-    datasets,
-  };
-},
+      return {
+        datasets: [{
+          data: data,
+          backgroundColor: this.getRandomColor(),
+          pointRadius: 8,
+          pointHoverRadius: 10,
+        }]
+      };
+    },
     getRandomColor() {
       const letters = '0123456789ABCDEF';
       let color = '#';
@@ -195,11 +202,21 @@ export default {
   font-weight: bold;
 }
 
-.chart-container {
-  max-width: 800px;
-  margin: 0 auto;
-  height: 400px;
-  width: 100%; 
+.charts-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
 }
 
+.chart-wrapper {
+  width: 45%;
+  height: 300px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+  .chart-wrapper {
+    width: 100%;
+  }
+}
 </style>

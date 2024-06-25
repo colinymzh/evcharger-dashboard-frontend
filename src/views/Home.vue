@@ -57,6 +57,10 @@
             </div>
         </div>
         <div class="bottom-section">
+            <div v-if="!selectedStation" class="prompt-text">
+                    <font-awesome-icon :icon="['fas', 'charging-station']" />
+                    Click Station Name to view charts
+                </div>
             <ChartSector v-if="selectedStation" :station="selectedStation" :connectorUsageData="connectorUsageData"
                 @fetch-connector-usage-data="handleFetchConnectorUsageData" />
         </div>
