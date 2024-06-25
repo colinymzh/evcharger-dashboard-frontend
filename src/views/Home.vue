@@ -1,65 +1,62 @@
 <template>
     <div class="home">
+      <div class="left-section">
         <div class="search-container">
-            <div class="status-message">
-                <font-awesome-icon :icon="['fas', 'charging-station']" />
-                Find a charging station
-                <button type="button" @click="clearSearchParams">Clear Filter</button>
-            </div>
-
-            <form @submit.prevent="searchStations">
-                <input type="text" list="cities" v-model="searchParams.cityName" @input="searchStations"
-                    placeholder="Select or type a city">
-                <datalist id="cities">
-                    <option value="">All Cities</option>
-                    <option v-for="cityName in cities" :key="cityName" :value="cityName">{{ cityName }}</option>
-                </datalist>
-                <input type="text" v-model="searchParams.postcode" placeholder="Postcode" />
-                <label>
-                    <input type="checkbox" v-model="searchParams.supportsFastCharging" />
-                    Supports Fast Charging
-                </label>
-
-            </form>
+          <div class="status-message">
+            <font-awesome-icon :icon="['fas', 'charging-station']" />
+            Find a charging station
+            <button type="button" @click="clearSearchParams">Clear Filter</button>
+          </div>
+  
+          <form @submit.prevent="searchStations">
+            <input type="text" list="cities" v-model="searchParams.cityName" @input="searchStations" placeholder="Select or type a city" />
+            <datalist id="cities">
+              <option value="">All Cities</option>
+              <option v-for="cityName in cities" :key="cityName" :value="cityName">{{ cityName }}</option>
+            </datalist>
+            <input type="text" v-model="searchParams.postcode" placeholder="Postcode" />
+            <label>
+              <input type="checkbox" v-model="searchParams.supportsFastCharging" />
+              Supports Fast Charging
+            </label>
+          </form>
         </div>
-
-
+  
         <div class="table-container">
-
-            <div class="status-message">
-                <font-awesome-icon :icon="['fas', 'charging-station']" />
-                Click Station Name to view charging station details
+          <div class="status-message">
+            <font-awesome-icon :icon="['fas', 'charging-station']" />
+            Click Station Name to view charging station details
+          </div>
+          <ChargingStationTable :stations="stations" @station-clicked="fetchStationDetails" />
+          <div class="pagination">
+            <button @click="goToFirstPage" :disabled="currentPage === 1">First Page</button>
+            <button @click="prevPage" :disabled="currentPage === 1">Last Page</button>
+            <span>{{ currentPage }} / {{ totalPages }}</span>
+            <button @click="nextPage" :disabled="currentPage === totalPages">Next Page</button>
+            <div class="goto-page">
+              Go To: <input type="number" v-model.number="gotoPage" @keyup.enter="goToPage" min="1" :max="totalPages" />
             </div>
-            <div class="status-message">
-                <font-awesome-icon :icon="['fas', 'charging-station']" />
-                Select a charging station to check if it is currently available
+            <div class="page-size">
+              Every Page:
+              <select v-model="pageSize" @change="changePageSize">
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+              </select>
             </div>
-            <ChargingStationTable :stations="stations" />
-            <div class="pagination">
-                <button @click="goToFirstPage" :disabled="currentPage === 1">First Page</button>
-                <button @click="prevPage" :disabled="currentPage === 1">Last Page</button>
-                <span>{{ currentPage }} / {{ totalPages }}</span>
-                <button @click="nextPage" :disabled="currentPage === totalPages">Next Page</button>
-                <div class="goto-page">
-                    Go To: <input type="number" v-model.number="gotoPage" @keyup.enter="goToPage" min="1"
-                        :max="totalPages" />
-                </div>
-                <div class="page-size">
-                    Every Page:
-                    <select v-model="pageSize" @change="changePageSize">
-                        <option value="10">10</option>
-                        <option value="20">20</option>
-                        <option value="50">50</option>
-                    </select>
-                </div>
-            </div>
+          </div>
         </div>
-
+      </div>
+  
+      <div class="right-section">
+        <StationDetails v-if="selectedStation" :station="selectedStation" />
+      </div>
     </div>
-</template>
+  </template>
 
 <script>
 import ChargingStationTable from '@/components/ChargingStationTable.vue';
+import StationDetails from '@/components/StationDetails.vue';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
@@ -71,10 +68,12 @@ export default {
     components: {
         ChargingStationTable,
         FontAwesomeIcon,
+        StationDetails,
     },
     data() {
         return {
             stations: [],
+            selectedStation: null,
             currentPage: 1,
             pageSize: 10,
             totalStations: 0,
@@ -99,6 +98,16 @@ export default {
         },
     },
     methods: {
+        async fetchStationDetails(stationName) {
+            try {
+                const response = await axios.get(`http://localhost:8088/stations/${stationName}`);
+                this.selectedStation = response.data;
+            } catch (error) {
+                console.error('Failed to fetch station details:', error);
+            }
+        },
+
+
         async fetchData() {
             try {
                 const params = {
@@ -118,7 +127,7 @@ export default {
                     params.supportsFastCharging = true;
                 }
 
-                const response = await axios.get('http://localhost:8080/stations/filtered', {
+                const response = await axios.get('http://localhost:8088/stations/filtered', {
                     params,
                 });
 
@@ -130,7 +139,7 @@ export default {
         },
         async fetchCities() {
             try {
-                const response = await axios.get('http://localhost:8080/sites/cities');
+                const response = await axios.get('http://localhost:8088/sites/cities');
                 this.cities = response.data.sort();
             } catch (error) {
                 console.error('Failed to fetch cities:', error);
@@ -184,8 +193,9 @@ export default {
 <style scoped>
 .home {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
     padding: 20px;
 }
 
@@ -215,28 +225,16 @@ button:hover {
     background-color: #2c3e50;
 }
 
-
+.left-section {
+    width: 60%;
+    padding-right: 20px;
+}
 
 .table-container {
-    width: 60%;
-    /* 修改这一行 */
     padding: 20px;
-    margin: 10px auto 40px;
-    /* 修改这一行 */
     background-color: #fff;
     border-radius: 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 20px;
-}
-
-.pagination button {
-    margin: 0 10px;
 }
 
 .pagination {
@@ -263,7 +261,6 @@ button:hover {
 }
 
 .search-container {
-    width: 60%;
     margin-bottom: 20px;
     padding: 20px;
     background-color: #f8f9fa;
@@ -316,17 +313,16 @@ button:hover {
 
 .status-message {
     font-size: 18px;
-    /* 字体大小 */
     color: #277734;
-    /* 字体颜色，深蓝灰色 */
     border-radius: 8px;
-    /* 边框圆角 */
     margin: 20px auto;
-    /* 自动边距使其居中显示，上下边距20px */
     width: 100%;
-    /* 宽度，根据需要调整 */
     text-align: left;
     display: block;
-    /* 设置为块级元素 */
+}
+
+.right-section {
+    width: 40%;
+    padding-left: 20px;
 }
 </style>

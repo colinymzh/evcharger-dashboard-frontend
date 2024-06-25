@@ -3,7 +3,6 @@
         <table>
             <thead>
                 <tr>
-                    <th></th>
                     <th>Station Name</th>
                     <th>City</th>
                     <th>Street</th>
@@ -13,146 +12,29 @@
             <tbody>
                 <tr v-for="station in stations" :key="station.stationName">
                     <td>
-                        <input type="checkbox" :value="station" v-model="selectedStations">
-                    </td>
-                    <td>
-                        <a href="#" @click.prevent="fetchStationDetails(station.stationName)">{{ station.stationName
-                            }}</a>
-                    </td>
+          <a href="#" @click.prevent="$emit('station-clicked', station.stationName)">{{ station.stationName }}</a>
+        </td>
                     <td>{{ station.cityName }}</td>
                     <td>{{ station.street }}</td>
                     <td>{{ station.postcode }}</td>
                 </tr>
             </tbody>
         </table>
-        <div class="selected-stations-grid" v-if="selectedStations.length > 0">
-            <div class="station-card" v-for="(station, index) in selectedStations" :key="index">
-                <p><strong>Station Name:</strong> {{ station.stationName }}</p>
-                <p><strong>City:</strong> {{ station.cityName }}</p>
-                <p><strong>Street:</strong> {{ station.street }}</p>
-                <p><strong>Postcode:</strong> {{ station.postcode }}</p>
-            </div>
-        </div>
 
-        <div class="button-container">
-            <button @click="clearAllSelections" v-if="selectedStations.length > 0">Clear All</button>
-            <button @click="checkAvailability" v-if="selectedStations.length > 0" class="green-button">Check
-                Availability</button>
-        </div>
-
-
-
-
-        <div v-if="showModal" class="modal">
-            <div class="modal-content">
-                <span class="close" @click="closeModal">&times;</span>
-                <h2>Station Name: {{ selectedStation.stationName }}</h2>
-                <p><strong>City:</strong> {{ selectedStation.cityName }}</p>
-                <p><strong>Street:</strong> {{ selectedStation.street }}</p>
-                <p><strong>Postcode:</strong> {{ selectedStation.postcode }}</p>
-
-                <h3>Tariff Information:</h3>
-                <table>
-                    <tbody>
-                        <tr>
-                            <th>Tariff Amount</th>
-                            <td>{{ selectedStation.tariffAmount }}</td>
-                        </tr>
-                        <tr>
-                            <th>Tariff Description</th>
-                            <td>{{ selectedStation.tariffDescription }}</td>
-                        </tr>
-                        <tr>
-                            <th>Tariff Connection Fee</th>
-                            <td>{{ selectedStation.tariffConnectionfee || 'N/A' }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-
-
-                <h3>Connectors:</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Connector ID</th>
-                            <th>Max Charge Rate</th>
-                            <th>Plug Type</th>
-                            <th>Connector Type</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="connector in selectedStation.connectors" :key="connector.connectorId">
-                            <td>{{ connector.connectorId }}</td>
-                            <td>{{ connector.maxChargerate }} kW</td>
-                            <td>{{ connector.plugType }}</td>
-                            <td>{{ connector.connectorType }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-
-        <div v-if="showAvailabilityModal" class="modal">
-            <div class="modal-content">
-                <span class="close" @click="showAvailabilityModal = false">&times;</span>
-                <h2>Availability Data</h2>
-                <div v-if="availabilityData" class="availability-data">
-                    <div v-for="(chargePoint, index) in availabilityData" :key="index" class="charge-point">
-                        <h3><i class="fas fa-charging-station"></i> Charge Point: {{ chargePoint.chargePoint.name }}
-                        </h3>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Connector ID</th>
-                                    <th>Connector Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <template
-                                    v-for="(connectorGroup, groupIndex) in chargePoint.chargePoint.connectorGroups">
-                                    <tr v-for="(connector, connectorIndex) in connectorGroup.connectors"
-                                        :key="`${groupIndex}-${connectorIndex}`">
-                                        <td>{{ connector.connectorID }}</td>
-                                        <td>
-                                            {{ connector.connectorStatus }}<span
-                                                :class="getStatusColor(connector.connectorStatus)"></span>
-                                        </td>
-                                    </tr>
-                                </template>
-                            </tbody>
-                        </table>
-                        <div
-                            v-if="!chargePoint.chargePoint.connectorGroups || chargePoint.chargePoint.connectorGroups.length === 0">
-                            <p>No connectors available for this charge point.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-
-
-        <div v-if="loading" class="loading-overlay">
-            <div class="loading-spinner"></div>
-        </div>
-
-
-
-
+        <StationDetails :station="selectedStation" />
     </div>
-
-
-
-
 </template>
 
 <script>
 import axios from 'axios';
+import StationDetails from './StationDetails.vue';
 
 export default {
     name: 'ChargingStationTable',
+
+    components: {
+        StationDetails,
+    },
     props: {
         stations: {
             type: Array,
@@ -161,73 +43,13 @@ export default {
     },
     data() {
         return {
-            selectedStations: [],
-            showModal: false,
-            selectedStation: {},
+            selectedStation: null,
             availabilityData: null,
             showAvailabilityModal: false,
             loading: false,
         };
     },
     methods: {
-        clearAllSelections() {
-            this.selectedStations = [];
-        },
-        async fetchStationDetails(stationName) {
-            try {
-                const response = await axios.get(`http://localhost:8080/stations/${stationName}`);
-                this.selectedStation = response.data;
-                this.showModal = true;
-            } catch (error) {
-                console.error('Failed to fetch station details:', error);
-            }
-        },
-        closeModal() {
-            this.showModal = false;
-        },
-
-        async checkAvailability() {
-            this.loading = true; // 开始加载
-            const selectedStationNames = this.selectedStations.map(station => station.stationName);
-            const url = 'https://account.chargeplacescotland.org/api/v2/poi/chargepoint/dynamic';
-            const headers = {
-                'api-auth': 'c3VwcG9ydCtjcHNhcHBAdmVyc2FudHVzLmNvLnVrOmt5YlRYJkZPJCEzcVBOJHlhMVgj',
-                'chargePointIDs': selectedStationNames.join(',')
-            };
-
-            try {
-                const response = await axios.get(url, { headers });
-                console.log('Response:', response);
-                console.log('Availability Data:', response.data.chargePoints);
-
-                this.availabilityData = response.data.chargePoints;
-                this.showAvailabilityModal = true; // 显示模态框
-
-                this.$nextTick(() => {
-                    console.log(this.availabilityData);
-                });
-
-            } catch (error) {
-                console.error('Failed to fetch availability data:', error);
-            }
-
-            this.loading = false; // 加载完成
-        },
-
-
-
-        getStatusColor(status) {
-            switch (status) {
-                case 'AVAILABLE':
-                    return 'status-available';
-                case 'OCCUPIED':
-                    return 'status-occupied';
-                default:
-                    return 'status-unknown';
-            }
-        },
-
-
 
     },
 };
@@ -426,11 +248,14 @@ th {
 }
 
 a {
-  color: #1e8557; /* 将超链接的颜色设置为你喜欢的颜色 */
-  text-decoration: none; /* 可选:移除默认的下划线 */
+    color: #1e8557;
+    /* 将超链接的颜色设置为你喜欢的颜色 */
+    text-decoration: none;
+    /* 可选:移除默认的下划线 */
 }
 
 a:hover {
-  text-decoration: underline; /* 可选:在鼠标悬停时添加下划线 */
+    text-decoration: underline;
+    /* 可选:在鼠标悬停时添加下划线 */
 }
 </style>
