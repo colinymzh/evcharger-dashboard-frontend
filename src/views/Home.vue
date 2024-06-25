@@ -1,58 +1,61 @@
 <template>
     <div class="home">
-      <div class="left-section">
-        <div class="search-container">
-          <div class="status-message">
-            <font-awesome-icon :icon="['fas', 'charging-station']" />
-            Find a charging station
-            <button type="button" @click="clearSearchParams">Clear Filter</button>
-          </div>
-  
-          <form @submit.prevent="searchStations">
-            <input type="text" list="cities" v-model="searchParams.cityName" @input="searchStations" placeholder="Select or type a city" />
-            <datalist id="cities">
-              <option value="">All Cities</option>
-              <option v-for="cityName in cities" :key="cityName" :value="cityName">{{ cityName }}</option>
-            </datalist>
-            <input type="text" v-model="searchParams.postcode" placeholder="Postcode" />
-            <label>
-              <input type="checkbox" v-model="searchParams.supportsFastCharging" />
-              Supports Fast Charging
-            </label>
-          </form>
-        </div>
-  
-        <div class="table-container">
-          <div class="status-message">
-            <font-awesome-icon :icon="['fas', 'charging-station']" />
-            Click Station Name to view charging station details
-          </div>
-          <ChargingStationTable :stations="stations" @station-clicked="fetchStationDetails" />
-          <div class="pagination">
-            <button @click="goToFirstPage" :disabled="currentPage === 1">First Page</button>
-            <button @click="prevPage" :disabled="currentPage === 1">Last Page</button>
-            <span>{{ currentPage }} / {{ totalPages }}</span>
-            <button @click="nextPage" :disabled="currentPage === totalPages">Next Page</button>
-            <div class="goto-page">
-              Go To: <input type="number" v-model.number="gotoPage" @keyup.enter="goToPage" min="1" :max="totalPages" />
+        <div class="left-section">
+            <div class="search-container">
+                <div class="status-message">
+                    <font-awesome-icon :icon="['fas', 'charging-station']" />
+                    Find a charging station
+                    <button type="button" @click="clearSearchParams">Clear Filter</button>
+                </div>
+
+                <form @submit.prevent="searchStations">
+                    <input type="text" list="cities" v-model="searchParams.cityName" @input="searchStations"
+                        placeholder="Select or type a city" />
+                    <datalist id="cities">
+                        <option value="">All Cities</option>
+                        <option v-for="cityName in cities" :key="cityName" :value="cityName">{{ cityName }}</option>
+                    </datalist>
+                    <input type="text" v-model="searchParams.postcode" placeholder="Postcode" />
+                    <label>
+                        <input type="checkbox" v-model="searchParams.supportsFastCharging" />
+                        Supports Fast Charging
+                    </label>
+                </form>
             </div>
-            <div class="page-size">
-              Every Page:
-              <select v-model="pageSize" @change="changePageSize">
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="50">50</option>
-              </select>
+
+            <div class="table-container">
+                <div class="status-message">
+                    <font-awesome-icon :icon="['fas', 'charging-station']" />
+                    Click Station Name to view charging station details
+                </div>
+                <ChargingStationTable :stations="stations" @station-clicked="fetchStationDetails" />
+                <div class="pagination">
+                    <button @click="goToFirstPage" :disabled="currentPage === 1">First Page</button>
+                    <button @click="prevPage" :disabled="currentPage === 1">Last Page</button>
+                    <span>{{ currentPage }} / {{ totalPages }}</span>
+                    <button @click="nextPage" :disabled="currentPage === totalPages">Next Page</button>
+                    <div class="goto-page">
+                        Go To: <input type="number" v-model.number="gotoPage" @keyup.enter="goToPage" min="1"
+                            :max="totalPages" />
+                    </div>
+                    <div class="page-size">
+                        Every Page:
+                        <select v-model="pageSize" @change="changePageSize">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-  
-      <div class="right-section">
-        <StationDetails v-if="selectedStation" :station="selectedStation" />
-      </div>
+
+        <div class="right-section">
+            <StationDetails v-if="selectedStation" :station="selectedStation"
+                :connectorUsageData="connectorUsageData" />
+        </div>
     </div>
-  </template>
+</template>
 
 <script>
 import ChargingStationTable from '@/components/ChargingStationTable.vue';
@@ -84,6 +87,7 @@ export default {
                 supportsFastCharging: false,
             },
             cities: [],
+            connectorUsageData: null,
         };
     },
     computed: {
@@ -99,13 +103,19 @@ export default {
     },
     methods: {
         async fetchStationDetails(stationName) {
-            try {
-                const response = await axios.get(`http://localhost:8088/stations/${stationName}`);
-                this.selectedStation = response.data;
-            } catch (error) {
-                console.error('Failed to fetch station details:', error);
-            }
-        },
+  try {
+    // 重置 connectorUsageData
+    this.connectorUsageData = null;
+
+    const response = await axios.get(`http://localhost:8088/stations/${stationName}`);
+    this.selectedStation = response.data;
+
+    const usageResponse = await axios.get(`http://localhost:8088/availability/station/usage?stationName=${stationName}&scope=10`);
+    this.connectorUsageData = usageResponse.data;
+  } catch (error) {
+    console.error('Failed to fetch station details:', error);
+  }
+},
 
 
         async fetchData() {
