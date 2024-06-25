@@ -1,58 +1,64 @@
 <template>
     <div class="home">
-        <div class="left-section">
-            <div class="search-container">
-                <div class="status-message">
-                    <font-awesome-icon :icon="['fas', 'charging-station']" />
-                    Find a charging station
-                    <button type="button" @click="clearSearchParams">Clear Filter</button>
+        <div class="top-section">
+            <div class="left-section">
+                <div class="search-container">
+                    <div class="status-message">
+                        <font-awesome-icon :icon="['fas', 'charging-station']" />
+                        Find a charging station
+                        <button type="button" @click="clearSearchParams">Clear Filter</button>
+                    </div>
+
+                    <form @submit.prevent="searchStations">
+                        <input type="text" list="cities" v-model="searchParams.cityName" @input="searchStations"
+                            placeholder="Select or type a city" />
+                        <datalist id="cities">
+                            <option value="">All Cities</option>
+                            <option v-for="cityName in cities" :key="cityName" :value="cityName">{{ cityName }}</option>
+                        </datalist>
+                        <input type="text" v-model="searchParams.postcode" placeholder="Postcode" />
+                        <label>
+                            <input type="checkbox" v-model="searchParams.supportsFastCharging" />
+                            Supports Fast Charging
+                        </label>
+                    </form>
                 </div>
 
-                <form @submit.prevent="searchStations">
-                    <input type="text" list="cities" v-model="searchParams.cityName" @input="searchStations"
-                        placeholder="Select or type a city" />
-                    <datalist id="cities">
-                        <option value="">All Cities</option>
-                        <option v-for="cityName in cities" :key="cityName" :value="cityName">{{ cityName }}</option>
-                    </datalist>
-                    <input type="text" v-model="searchParams.postcode" placeholder="Postcode" />
-                    <label>
-                        <input type="checkbox" v-model="searchParams.supportsFastCharging" />
-                        Supports Fast Charging
-                    </label>
-                </form>
+                <div class="table-container">
+                    <ChargingStationTable :stations="stations" @station-clicked="fetchStationDetails" />
+                    <div class="pagination">
+                        <button @click="goToFirstPage" :disabled="currentPage === 1">First Page</button>
+                        <button @click="prevPage" :disabled="currentPage === 1">Last Page</button>
+                        <span>{{ currentPage }} / {{ totalPages }}</span>
+                        <button @click="nextPage" :disabled="currentPage === totalPages">Next Page</button>
+                        <div class="goto-page">
+                            Go To: <input type="number" v-model.number="gotoPage" @keyup.enter="goToPage" min="1"
+                                :max="totalPages" />
+                        </div>
+                        <div class="page-size">
+                            Every Page:
+                            <select v-model="pageSize" @change="changePageSize">
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="table-container">
-                <div class="status-message">
+            <div class="right-section">
+                <div v-if="!selectedStation" class="prompt-text">
                     <font-awesome-icon :icon="['fas', 'charging-station']" />
                     Click Station Name to view charging station details
                 </div>
-                <ChargingStationTable :stations="stations" @station-clicked="fetchStationDetails" />
-                <div class="pagination">
-                    <button @click="goToFirstPage" :disabled="currentPage === 1">First Page</button>
-                    <button @click="prevPage" :disabled="currentPage === 1">Last Page</button>
-                    <span>{{ currentPage }} / {{ totalPages }}</span>
-                    <button @click="nextPage" :disabled="currentPage === totalPages">Next Page</button>
-                    <div class="goto-page">
-                        Go To: <input type="number" v-model.number="gotoPage" @keyup.enter="goToPage" min="1"
-                            :max="totalPages" />
-                    </div>
-                    <div class="page-size">
-                        Every Page:
-                        <select v-model="pageSize" @change="changePageSize">
-                            <option value="10">10</option>
-                            <option value="20">20</option>
-                            <option value="50">50</option>
-                        </select>
-                    </div>
-                </div>
+                <StationDetails v-else :station="selectedStation" :connectorUsageData="connectorUsageData"
+                    @fetch-connector-usage-data="handleFetchConnectorUsageData" />
             </div>
         </div>
-
-        <div class="right-section">
-            <StationDetails v-if="selectedStation" :station="selectedStation"
-                :connectorUsageData="connectorUsageData" />
+        <div class="bottom-section">
+            <ChartSector v-if="selectedStation" :station="selectedStation" :connectorUsageData="connectorUsageData"
+                @fetch-connector-usage-data="handleFetchConnectorUsageData" />
         </div>
     </div>
 </template>
@@ -64,6 +70,7 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faChargingStation } from '@fortawesome/free-solid-svg-icons';
+import ChartSector from '@/components/ChartSector.vue';
 library.add(faChargingStation)
 
 export default {
@@ -72,6 +79,7 @@ export default {
         ChargingStationTable,
         FontAwesomeIcon,
         StationDetails,
+        ChartSector,
     },
     data() {
         return {
@@ -103,20 +111,38 @@ export default {
     },
     methods: {
         async fetchStationDetails(stationName) {
-  try {
-    // 重置 connectorUsageData
-    this.connectorUsageData = null;
+            try {
+                // 重置 connectorUsageData
+                this.connectorUsageData = null;
 
-    const response = await axios.get(`http://localhost:8088/stations/${stationName}`);
-    this.selectedStation = response.data;
+                const response = await axios.get(`http://localhost:8088/stations/${stationName}`);
+                this.selectedStation = response.data;
 
-    const usageResponse = await axios.get(`http://localhost:8088/availability/station/usage?stationName=${stationName}&scope=10`);
-    this.connectorUsageData = usageResponse.data;
-  } catch (error) {
-    console.error('Failed to fetch station details:', error);
-  }
-},
+                const usageResponse = await axios.get(`http://localhost:8088/availability/station/usage?stationName=${stationName}&scope=5`);
+                this.connectorUsageData = usageResponse.data;
+            } catch (error) {
+                console.error('Failed to fetch station details:', error);
+            }
+        },
 
+        handleFetchConnectorUsageData(scope) {
+            this.fetchStationDetailsWithScope(this.selectedStation.stationName, scope);
+        },
+
+        async fetchStationDetailsWithScope(stationName, scope) {
+            try {
+                // 重置 connectorUsageData
+                this.connectorUsageData = null;
+
+                const response = await axios.get(`http://localhost:8088/stations/${stationName}`);
+                this.selectedStation = response.data;
+
+                const usageResponse = await axios.get(`http://localhost:8088/availability/station/usage?stationName=${stationName}&scope=${scope}`);
+                this.connectorUsageData = usageResponse.data;
+            } catch (error) {
+                console.error('Failed to fetch station details:', error);
+            }
+        },
 
         async fetchData() {
             try {
@@ -203,11 +229,46 @@ export default {
 <style scoped>
 .home {
     display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
     padding: 20px;
 }
+
+.top-section {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    margin-bottom: 20px;
+
+}
+
+.left-section {
+    width: 80%;
+    padding-right: 20px;
+}
+
+.right-section {
+    width: 30%;
+    padding-left: 20px;
+    display: flex;
+    /* 添加这一行 */
+    justify-content: center;
+    /* 添加这一行 */
+    align-items: center;
+    /* 添加这一行 */
+}
+
+.bottom-section {
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* 其他样式保持不变 */
+
 
 .header {
     text-align: center;
@@ -235,10 +296,9 @@ button:hover {
     background-color: #2c3e50;
 }
 
-.left-section {
-    width: 60%;
-    padding-right: 20px;
-}
+
+
+
 
 .table-container {
     padding: 20px;
@@ -331,8 +391,12 @@ button:hover {
     display: block;
 }
 
-.right-section {
-    width: 40%;
-    padding-left: 20px;
+.prompt-text {
+    text-align: center;
+    padding: 20px;
+    color: #555;
+    font-size: 16px;
+    margin: auto;
+    color: #277734;
 }
 </style>
