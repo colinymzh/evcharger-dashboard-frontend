@@ -60,7 +60,13 @@
             <UsageChartSector v-if="selectedStation" :station="selectedStation" :connectorUsageData="connectorUsageData"
                 :connectorTimePeriodData="connectorTimePeriodData"
                 @fetch-connector-usage-data="(scope) => fetchStationDetails(selectedStation.stationName, scope)" />
+            
+                <HeatmapSector v-if="selectedStation && weeklyHourlyUsageData"
+                :weeklyHourlyUsageData="weeklyHourlyUsageData" />
             <WeeklyChartSector v-if="selectedStation" :weeklyUsageData="weeklyUsageData" />
+
+
+
             <CityChartSector v-if="selectedStation && cityWeeklyUsageData" :cityWeeklyUsageData="cityWeeklyUsageData" />
         </div>
 
@@ -81,6 +87,8 @@ import UsageChartSector from '@/components/UsageChartSector.vue';
 import WeeklyChartSector from '@/components/WeeklyChartSector.vue';
 library.add(faChargingStation)
 import CityChartSector from '@/components/CityChartSector.vue';
+import HeatmapSector from '@/components/HeatmapSector.vue';
+
 
 const API_BASE_URL = 'http://localhost:8088';
 
@@ -103,6 +111,8 @@ export default {
         UsageChartSector,
         WeeklyChartSector,
         CityChartSector,
+        HeatmapSector,
+
     },
     data() {
         return {
@@ -122,6 +132,7 @@ export default {
             connectorTimePeriodData: null,
             weeklyUsageData: null,
             cityWeeklyUsageData: null,
+            weeklyHourlyUsageData: null,
         };
     },
     computed: {
@@ -139,24 +150,27 @@ export default {
         async fetchStationDetails(stationName, scope = 5) {
             this.connectorUsageData = null;
             this.cityWeeklyUsageData = null;
+            this.weeklyHourlyUsageData = null;
 
             try {
-      const [stationData, usageData, timePeriodData, weeklyUsageData, cityWeeklyUsageData] = await Promise.all([
-        this.fetchStationData(stationName),
-        this.fetchUsageData(stationName, scope),
-        this.fetchTimePeriodData(stationName, scope),
-        this.fetchWeeklyUsageData(stationName),
-        this.fetchCityWeeklyUsageData(stationName)
-      ]);
+                const [stationData, usageData, timePeriodData, weeklyUsageData, cityWeeklyUsageData, weeklyHourlyUsageData] = await Promise.all([
+                    this.fetchStationData(stationName),
+                    this.fetchUsageData(stationName, scope),
+                    this.fetchTimePeriodData(stationName, scope),
+                    this.fetchWeeklyUsageData(stationName),
+                    this.fetchCityWeeklyUsageData(stationName),
+                    this.fetchWeeklyHourlyUsageData(stationName)
+                ]);
 
-      this.selectedStation = stationData;
-      this.connectorUsageData = usageData;
-      this.connectorTimePeriodData = timePeriodData;
-      this.weeklyUsageData = weeklyUsageData;
-      this.cityWeeklyUsageData = cityWeeklyUsageData;
-    } catch (error) {
-      console.error('Failed to fetch station details:', error);
-    }
+                this.selectedStation = stationData;
+                this.connectorUsageData = usageData;
+                this.connectorTimePeriodData = timePeriodData;
+                this.weeklyUsageData = weeklyUsageData;
+                this.cityWeeklyUsageData = cityWeeklyUsageData;
+                this.weeklyHourlyUsageData = weeklyHourlyUsageData;
+            } catch (error) {
+                console.error('Failed to fetch station details:', error);
+            }
         },
 
         fetchStationData(stationName) {
@@ -176,8 +190,13 @@ export default {
         },
 
         fetchCityWeeklyUsageData(stationName) {
-    return fetchData(`${API_BASE_URL}/availability/city/weekly-usage`, { stationName });
-  },
+            return fetchData(`${API_BASE_URL}/availability/city/weekly-usage`, { stationName });
+        },
+
+        fetchWeeklyHourlyUsageData(stationName) {
+            return fetchData(`${API_BASE_URL}/availability/station/weekly-hourly-usage`, { stationName });
+        },
+
 
         async fetchData() {
             try {
