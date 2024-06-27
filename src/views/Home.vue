@@ -58,6 +58,7 @@
 
 
             <UsageChartSector v-if="selectedStation" :station="selectedStation" :connectorUsageData="connectorUsageData"
+                :connectorTimePeriodData="connectorTimePeriodData"
                 @fetch-connector-usage-data="handleFetchConnectorUsageData" />
         </div>
 
@@ -98,6 +99,7 @@ export default {
             },
             cities: [],
             connectorUsageData: null,
+            connectorTimePeriodData: null,
         };
     },
     computed: {
@@ -122,6 +124,9 @@ export default {
 
                 const usageResponse = await axios.get(`http://localhost:8088/availability/station/usage?stationName=${stationName}&scope=5`);
                 this.connectorUsageData = usageResponse.data;
+
+                const timePeriodResponse = await axios.get(`http://localhost:8088/availability/station/usage/time-period?stationName=${stationName}&scope=5`);
+                this.connectorTimePeriodData = timePeriodResponse.data;
             } catch (error) {
                 console.error('Failed to fetch station details:', error);
             }
@@ -141,6 +146,9 @@ export default {
 
                 const usageResponse = await axios.get(`http://localhost:8088/availability/station/usage?stationName=${stationName}&scope=${scope}`);
                 this.connectorUsageData = usageResponse.data;
+                // 获取新的时间段数据
+                const timePeriodResponse = await axios.get(`http://localhost:8088/availability/station/usage/time-period?stationName=${stationName}&scope=${scope}`);
+                this.connectorTimePeriodData = timePeriodResponse.data;
             } catch (error) {
                 console.error('Failed to fetch station details:', error);
             }

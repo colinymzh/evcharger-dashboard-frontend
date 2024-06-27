@@ -1,58 +1,58 @@
 <template>
-    <div class="connector-usage-chart">
-      <h2 class="title">Connector {{ connectorId }} Usage</h2>
-      <div v-if="chartData" class="chart-container">
-        <LineChart :chartData="chartData" :options="options" />
-      </div>
-      <div v-else class="loading">Loading...</div>
+  <div class="connector-usage-chart">
+    <h2 class="title">Connector {{ connectorId }} Usage</h2>
+    <div v-if="chartData" class="chart-container">
+      <LineChart :chartData="chartData" :options="options" />
     </div>
-  </template>
-  
-  <script>
-  import LineChart from '@/components/charts/LineChart.vue';
-  
-  export default {
-    name: 'ConnectorUsageChart',
-    components: {
-      LineChart,
+    <div v-else class="loading">Loading...</div>
+  </div>
+</template>
+
+<script>
+import LineChart from '@/components/charts/LineChart.vue';
+
+export default {
+  name: 'ConnectorUsageChart',
+  components: {
+    LineChart,
+  },
+  props: {
+    connectorId: {
+      type: String,
+      required: true,
     },
-    props: {
-      connectorId: {
-        type: String,
-        required: true,
-      },
-      usageData: {
-        type: Array,
-        required: true,
-      },
+    usageData: {
+      type: Array,
+      required: true,
     },
-    data() {
-      return {
-        chartData: null,
-        options: {
-          scales: {
-            x: {
-              title: {
-                display: true,
-                text: 'Hour',
-              },
+  },
+  data() {
+    return {
+      chartData: null,
+      options: {
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Hour',
             },
-            y: {
-              min: 0,
-              max: 1,
-              ticks: {
-                stepSize: 0.2,
-              },
-              title: {
-                display: true,
-                text: 'Average Usage',
-              },
+          },
+          y: {
+            min: 0,
+            max: 1,
+            ticks: {
+              stepSize: 0.2,
+            },
+            title: {
+              display: true,
+              text: 'Average Usage',
             },
           },
         },
-      };
-    },
-    mounted() {
+      },
+    };
+  },
+  mounted() {
     this.prepareChartData();
   },
   methods: {
