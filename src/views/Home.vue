@@ -60,12 +60,12 @@
             <UsageChartSector v-if="selectedStation" :station="selectedStation" :connectorUsageData="connectorUsageData"
                 :connectorTimePeriodData="connectorTimePeriodData"
                 @fetch-connector-usage-data="(scope) => fetchStationDetails(selectedStation.stationName, scope)" />
+
             
-                <HeatmapSector v-if="selectedStation && weeklyHourlyUsageData"
-                :weeklyHourlyUsageData="weeklyHourlyUsageData" />
             <WeeklyChartSector v-if="selectedStation" :weeklyUsageData="weeklyUsageData" />
 
-
+            <HeatmapSector v-if="selectedStation && weeklyHourlyUsageData"
+            :weeklyHourlyUsageData="weeklyHourlyUsageData" />
 
             <CityChartSector v-if="selectedStation && cityWeeklyUsageData" :cityWeeklyUsageData="cityWeeklyUsageData" />
         </div>

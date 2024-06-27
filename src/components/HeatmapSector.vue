@@ -30,13 +30,30 @@ export default {
     computed: {
         heatmapData() {
             return this.weeklyHourlyUsageData.map(connector => {
-                const data = connector.weeklyHourlyUsage.flatMap((day, dayIndex) =>
-                    day.hourlyUsage.map(hour => ({
-                        x: hour.hour,
-                        y: dayIndex,
-                        value: hour.averageUsage
-                    }))
-                );
+                const data = connector.weeklyHourlyUsage.flatMap((day, dayIndex) => {
+                    const timeSlots = [
+                        { start: 0, end: 4 },
+                        { start: 4, end: 8 },
+                        { start: 8, end: 12 },
+                        { start: 12, end: 16 },
+                        { start: 16, end: 20 },
+                        { start: 20, end: 24 }
+                    ];
+
+                    return timeSlots.map((slot, slotIndex) => {
+                        const slotHours = day.hourlyUsage.filter(hour =>
+                            hour.hour >= slot.start && hour.hour < slot.end
+                        );
+                        const averageUsage = slotHours.reduce((sum, hour) => sum + hour.averageUsage, 0) / slotHours.length;
+
+                        return {
+                            x: slotIndex,
+                            y: dayIndex,
+                            value: averageUsage
+                        };
+                    });
+                });
+
                 return {
                     connectorId: connector.connectorId,
                     data: data
@@ -63,7 +80,7 @@ export default {
                                 const value = context.raw.value;
                                 return `rgba(0, 128, 0, ${value})`;
                             },
-                            pointRadius: 15,
+                            pointRadius: 15, // 减小点的大小
                             pointHoverRadius: 17,
                         }]
                     },
@@ -75,20 +92,21 @@ export default {
                                 type: 'linear',
                                 position: 'bottom',
                                 min: -0.5,
-                                max: 24,
+                                max: 5.4,
                                 ticks: {
-                                    stepSize: 6,
-                                    callback: (value) => {
-                                        if (value === 0 || value === 6 || value === 12 || value === 18 || value === 24) {
-                                            return value.toString();
-                                        }
-                                        return '';
+                                    stepSize: 1,
+                                    callback: function (value, index, values) {
+                                        const labels = ['0-4', '4-8', '8-12', '12-16', '16-20', '20-24'];
+                                        return labels[value];
                                     },
-                                    display: true
+                                    display: true,
+                                    font: {
+                                        size: 10
+                                    }
                                 },
                                 title: {
                                     display: true,
-                                    text: 'Hour of Day'
+                                    text: 'Time of Day'
                                 },
                                 grid: {
                                     display: false
@@ -100,8 +118,8 @@ export default {
                             y: {
                                 type: 'linear',
                                 reverse: true,
-                                min: -1,
-                                max: 6.5,
+                                min: -0.5,
+                                max: 7,
                                 ticks: {
                                     stepSize: 1,
                                     callback: (value) => {
@@ -128,21 +146,32 @@ export default {
                                     label(context) {
                                         const v = context.raw;
                                         const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-                                        return [`Day: ${days[v.y]}`,
-                                        `Hour: ${v.x}`,
-                                        `Usage: ${v.value.toFixed(2)}`];
+                                        const timeSlots = ['0-4', '4-8', '8-12', '12-16', '16-20', '20-24'];
+                                        return [
+                                            `Day: ${days[v.y]}`,
+                                            `Time: ${timeSlots[v.x]}`,
+                                            `Average Usage: ${v.value.toFixed(2)}`
+                                        ];
                                     }
                                 }
                             },
                             legend: {
                                 display: false
                             }
+                        },
+                        layout: {
+                            padding: {
+                                top: 10,
+                                right: 10,
+                                bottom: 20, // 增加底部填充以显示 x 轴标签
+                                left: 10
+                            }
                         }
                     }
                 });
                 this.charts.push(chart);
             });
-        }
+        },
     },
     beforeUnmount() {
         this.charts.forEach(chart => chart.destroy());

@@ -76,7 +76,7 @@ export default {
   background-color: white;
   border-radius: 8px;
   padding: 15px;
-  min-width: 395px;
+  min-width: 480px;
   flex: 0 0 auto;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }

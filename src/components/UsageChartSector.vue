@@ -116,9 +116,9 @@ h2 {
 
 .chart-container>* {
   flex: 0 0 auto;
-  width: 400px;
+  width: 490px;
   /* 设置每个图表的宽度 */
-  height: 300px;
+  height: 350px;
   /* 设置每个图表的高度 */
   margin-right: 20px;
   margin-bottom: 20px;
