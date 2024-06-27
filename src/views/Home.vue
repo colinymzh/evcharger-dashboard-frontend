@@ -60,7 +60,11 @@
             <UsageChartSector v-if="selectedStation" :station="selectedStation" :connectorUsageData="connectorUsageData"
                 :connectorTimePeriodData="connectorTimePeriodData"
                 @fetch-connector-usage-data="handleFetchConnectorUsageData" />
+                <WeeklyChartSector v-if="selectedStation" :weeklyUsageData="weeklyUsageData" />
+
         </div>
+
+
 
 
     </div>
@@ -74,6 +78,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faChargingStation } from '@fortawesome/free-solid-svg-icons';
 import UsageChartSector from '@/components/UsageChartSector.vue';
+import WeeklyChartSector from '@/components/WeeklyChartSector.vue';
 library.add(faChargingStation)
 
 export default {
@@ -83,6 +88,7 @@ export default {
         FontAwesomeIcon,
         StationDetails,
         UsageChartSector,
+        WeeklyChartSector,
     },
     data() {
         return {
@@ -100,6 +106,7 @@ export default {
             cities: [],
             connectorUsageData: null,
             connectorTimePeriodData: null,
+            weeklyUsageData: null,
         };
     },
     computed: {
@@ -127,6 +134,8 @@ export default {
 
                 const timePeriodResponse = await axios.get(`http://localhost:8088/availability/station/usage/time-period?stationName=${stationName}&scope=5`);
                 this.connectorTimePeriodData = timePeriodResponse.data;
+
+                await this.fetchWeeklyUsageData(stationName);
             } catch (error) {
                 console.error('Failed to fetch station details:', error);
             }
@@ -136,6 +145,7 @@ export default {
             this.fetchStationDetailsWithScope(this.selectedStation.stationName, scope);
         },
 
+        
         async fetchStationDetailsWithScope(stationName, scope) {
             try {
                 // 重置 connectorUsageData
@@ -154,6 +164,15 @@ export default {
             }
         },
 
+        async fetchWeeklyUsageData(stationName) {
+  try {
+    const response = await axios.get(`http://localhost:8088/availability/station/weekly-usage?stationName=${stationName}`);
+    this.weeklyUsageData = response.data;
+  } catch (error) {
+    console.error('Failed to fetch weekly usage data:', error);
+  }
+},
+        
         async fetchData() {
             try {
                 const params = {
