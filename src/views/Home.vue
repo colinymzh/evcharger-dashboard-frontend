@@ -59,9 +59,9 @@
 
             <UsageChartSector v-if="selectedStation" :station="selectedStation" :connectorUsageData="connectorUsageData"
                 :connectorTimePeriodData="connectorTimePeriodData"
-                @fetch-connector-usage-data="handleFetchConnectorUsageData" />
-                <WeeklyChartSector v-if="selectedStation" :weeklyUsageData="weeklyUsageData" />
-
+                @fetch-connector-usage-data="(scope) => fetchStationDetails(selectedStation.stationName, scope)" />
+            <WeeklyChartSector v-if="selectedStation" :weeklyUsageData="weeklyUsageData" />
+            <CityChartSector v-if="selectedStation && cityWeeklyUsageData" :cityWeeklyUsageData="cityWeeklyUsageData" />
         </div>
 
 
@@ -80,6 +80,19 @@ import { faChargingStation } from '@fortawesome/free-solid-svg-icons';
 import UsageChartSector from '@/components/UsageChartSector.vue';
 import WeeklyChartSector from '@/components/WeeklyChartSector.vue';
 library.add(faChargingStation)
+import CityChartSector from '@/components/CityChartSector.vue';
+
+const API_BASE_URL = 'http://localhost:8088';
+
+const fetchData = async (url, params = {}) => {
+    try {
+        const response = await axios.get(url, { params });
+        return response.data;
+    } catch (error) {
+        console.error(`Failed to fetch data from ${url}:`, error);
+        throw error;
+    }
+};
 
 export default {
     name: 'Home',
@@ -89,6 +102,7 @@ export default {
         StationDetails,
         UsageChartSector,
         WeeklyChartSector,
+        CityChartSector,
     },
     data() {
         return {
@@ -107,6 +121,7 @@ export default {
             connectorUsageData: null,
             connectorTimePeriodData: null,
             weeklyUsageData: null,
+            cityWeeklyUsageData: null,
         };
     },
     computed: {
@@ -121,129 +136,128 @@ export default {
         },
     },
     methods: {
-        async fetchStationDetails(stationName) {
+        async fetchStationDetails(stationName, scope = 5) {
+            this.connectorUsageData = null;
+            this.cityWeeklyUsageData = null;
+
             try {
-                // 重置 connectorUsageData
-                this.connectorUsageData = null;
+      const [stationData, usageData, timePeriodData, weeklyUsageData, cityWeeklyUsageData] = await Promise.all([
+        this.fetchStationData(stationName),
+        this.fetchUsageData(stationName, scope),
+        this.fetchTimePeriodData(stationName, scope),
+        this.fetchWeeklyUsageData(stationName),
+        this.fetchCityWeeklyUsageData(stationName)
+      ]);
 
-                const response = await axios.get(`http://localhost:8088/stations/${stationName}`);
-                this.selectedStation = response.data;
-
-                const usageResponse = await axios.get(`http://localhost:8088/availability/station/usage?stationName=${stationName}&scope=5`);
-                this.connectorUsageData = usageResponse.data;
-
-                const timePeriodResponse = await axios.get(`http://localhost:8088/availability/station/usage/time-period?stationName=${stationName}&scope=5`);
-                this.connectorTimePeriodData = timePeriodResponse.data;
-
-                await this.fetchWeeklyUsageData(stationName);
-            } catch (error) {
-                console.error('Failed to fetch station details:', error);
-            }
+      this.selectedStation = stationData;
+      this.connectorUsageData = usageData;
+      this.connectorTimePeriodData = timePeriodData;
+      this.weeklyUsageData = weeklyUsageData;
+      this.cityWeeklyUsageData = cityWeeklyUsageData;
+    } catch (error) {
+      console.error('Failed to fetch station details:', error);
+    }
         },
 
-        handleFetchConnectorUsageData(scope) {
-            this.fetchStationDetailsWithScope(this.selectedStation.stationName, scope);
+        fetchStationData(stationName) {
+            return fetchData(`${API_BASE_URL}/stations/${stationName}`);
         },
 
-        
-        async fetchStationDetailsWithScope(stationName, scope) {
-            try {
-                // 重置 connectorUsageData
-                this.connectorUsageData = null;
-
-                const response = await axios.get(`http://localhost:8088/stations/${stationName}`);
-                this.selectedStation = response.data;
-
-                const usageResponse = await axios.get(`http://localhost:8088/availability/station/usage?stationName=${stationName}&scope=${scope}`);
-                this.connectorUsageData = usageResponse.data;
-                // 获取新的时间段数据
-                const timePeriodResponse = await axios.get(`http://localhost:8088/availability/station/usage/time-period?stationName=${stationName}&scope=${scope}`);
-                this.connectorTimePeriodData = timePeriodResponse.data;
-            } catch (error) {
-                console.error('Failed to fetch station details:', error);
-            }
+        fetchUsageData(stationName, scope) {
+            return fetchData(`${API_BASE_URL}/availability/station/usage`, { stationName, scope });
         },
 
-        async fetchWeeklyUsageData(stationName) {
-  try {
-    const response = await axios.get(`http://localhost:8088/availability/station/weekly-usage?stationName=${stationName}`);
-    this.weeklyUsageData = response.data;
-  } catch (error) {
-    console.error('Failed to fetch weekly usage data:', error);
-  }
-},
-        
+        fetchTimePeriodData(stationName, scope) {
+            return fetchData(`${API_BASE_URL}/availability/station/usage/time-period`, { stationName, scope });
+        },
+
+        fetchWeeklyUsageData(stationName) {
+            return fetchData(`${API_BASE_URL}/availability/station/weekly-usage`, { stationName });
+        },
+
+        fetchCityWeeklyUsageData(stationName) {
+    return fetchData(`${API_BASE_URL}/availability/city/weekly-usage`, { stationName });
+  },
+
         async fetchData() {
             try {
                 const params = {
                     page: this.currentPage,
                     size: this.pageSize,
+                    ...this.getSearchParams()
                 };
 
-                if (this.searchParams.cityName) {
-                    params.cityName = this.searchParams.cityName;
-                }
+                const data = await fetchData(`${API_BASE_URL}/stations/filtered`, params);
 
-                if (this.searchParams.postcode) {
-                    params.postcode = this.searchParams.postcode;
-                }
-
-                if (this.searchParams.supportsFastCharging) {
-                    params.supportsFastCharging = true;
-                }
-
-                const response = await axios.get('http://localhost:8088/stations/filtered', {
-                    params,
-                });
-
-                this.stations = response.data.records;
-                this.totalStations = response.data.total;
+                this.stations = data.records;
+                this.totalStations = data.total;
             } catch (error) {
-                console.error('Failed to fetch data:', error);
+                console.error('Failed to fetch station data:', error);
             }
         },
+
         async fetchCities() {
             try {
-                const response = await axios.get('http://localhost:8088/sites/cities');
-                this.cities = response.data.sort();
+                const cities = await fetchData(`${API_BASE_URL}/sites/cities`);
+                this.cities = cities.sort();
             } catch (error) {
                 console.error('Failed to fetch cities:', error);
             }
         },
+
+        getSearchParams() {
+            const params = {};
+            const { cityName, postcode, supportsFastCharging } = this.searchParams;
+
+            if (cityName) params.cityName = cityName;
+            if (postcode) params.postcode = postcode;
+            if (supportsFastCharging) params.supportsFastCharging = true;
+
+            return params;
+        },
+
         prevPage() {
             if (this.currentPage > 1) {
                 this.currentPage--;
                 this.fetchData();
             }
         },
+
         nextPage() {
             if (this.currentPage < this.totalPages) {
                 this.currentPage++;
                 this.fetchData();
             }
         },
+
         goToFirstPage() {
             this.currentPage = 1;
             this.fetchData();
         },
+
         goToPage() {
             if (this.gotoPage >= 1 && this.gotoPage <= this.totalPages) {
                 this.currentPage = this.gotoPage;
                 this.fetchData();
             }
         },
+
         changePageSize() {
             this.currentPage = 1;
             this.fetchData();
         },
+
         searchStations() {
             this.currentPage = 1;
             this.fetchData();
         },
+
         clearSearchParams() {
-            this.searchParams.cityName = '';
-            this.searchParams.postcode = '';
-            this.searchParams.supportsFastCharging = false;
+            this.searchParams = {
+                cityName: '',
+                postcode: '',
+                supportsFastCharging: false
+            };
             this.currentPage = 1;
             this.fetchData();
         },
