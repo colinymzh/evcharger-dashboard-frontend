@@ -9,7 +9,7 @@
   </template>
   
   <script>
-  import LineChart from '@/components/LineChart.vue';
+  import LineChart from '@/components/charts/LineChart.vue';
   
   export default {
     name: 'ConnectorUsageChart',

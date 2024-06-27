@@ -47,23 +47,21 @@
                 </div>
             </div>
 
-            <div class="right-section">
-                <div v-if="!selectedStation" class="prompt-text">
-                    <font-awesome-icon :icon="['fas', 'charging-station']" />
-                    Click Station Name to view charging station details
-                </div>
-                <StationDetails v-else :station="selectedStation" :connectorUsageData="connectorUsageData"
-                    @fetch-connector-usage-data="handleFetchConnectorUsageData" />
-            </div>
+
         </div>
         <div class="bottom-section">
             <div v-if="!selectedStation" class="prompt-text">
-                    <font-awesome-icon :icon="['fas', 'charging-station']" />
-                    Click Station Name to view charts
-                </div>
-            <ChartSector v-if="selectedStation" :station="selectedStation" :connectorUsageData="connectorUsageData"
+                <font-awesome-icon :icon="['fas', 'charging-station']" />
+                Click Station Name to View Charging Station Details
+            </div>
+            <StationDetails v-else :station="selectedStation" />
+
+
+            <UsageChartSector v-if="selectedStation" :station="selectedStation" :connectorUsageData="connectorUsageData"
                 @fetch-connector-usage-data="handleFetchConnectorUsageData" />
         </div>
+
+
     </div>
 </template>
 
@@ -74,7 +72,7 @@ import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faChargingStation } from '@fortawesome/free-solid-svg-icons';
-import ChartSector from '@/components/ChartSector.vue';
+import UsageChartSector from '@/components/UsageChartSector.vue';
 library.add(faChargingStation)
 
 export default {
@@ -83,7 +81,7 @@ export default {
         ChargingStationTable,
         FontAwesomeIcon,
         StationDetails,
-        ChartSector,
+        UsageChartSector,
     },
     data() {
         return {
@@ -249,7 +247,7 @@ export default {
 }
 
 .left-section {
-    width: 80%;
+    width: 100%;
     padding-right: 20px;
 }
 

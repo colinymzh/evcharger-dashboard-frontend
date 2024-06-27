@@ -26,7 +26,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import StationDetails from './StationDetails.vue';
 
 export default {

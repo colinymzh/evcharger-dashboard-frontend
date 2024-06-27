@@ -21,10 +21,10 @@
   </template>
 
 <script>
-import ConnectorUsageChart from '@/components/ConnectorUsageChart.vue';
+import ConnectorUsageChart from '@/components/charts/ConnectorUsageChart.vue';
 
 export default {
-    name: 'ChartSector',
+    name: 'UsageChartSector',
     components: {
         ConnectorUsageChart,
     },
@@ -44,10 +44,6 @@ export default {
         },
     },
     methods: {
-        navigateToAvailabilityPage() {
-            const stationName = this.station.stationName;
-            this.$router.push(`/availability/${stationName}`);
-        },
         onScopeChange() {
             this.$emit('fetch-connector-usage-data', this.selectedScope);
         },

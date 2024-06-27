@@ -45,7 +45,7 @@
 
 <script>
 import axios from 'axios';
-import ScatterChart from '@/components/ScatterChart.vue';
+import ScatterChart from '@/components/charts/ScatterChart.vue';
 
 export default {
   name: 'AvailabilityPage',
