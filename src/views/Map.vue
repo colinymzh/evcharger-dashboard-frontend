@@ -22,6 +22,9 @@
               <button @click="goToStationDetails(station.stationName)" class="details-button">
                 View Details
               </button>
+              <button @click="navigateToStation(station)" class="navigate-button">
+                Navigate to this station
+              </button>
             </div>
           </l-popup>
         </l-marker>
@@ -58,6 +61,9 @@
               <button @click="goToStationDetails(station.stationName)" class="details-button">
                 View Details
               </button>
+              <button @click="navigateToStation(station)" class="navigate-button">
+                Navigate to this station
+              </button>
             </td>
           </tr>
         </tbody>
@@ -92,7 +98,7 @@ export default {
     const map = ref(null);
     const hasSearched = ref(false);
     const searchedLocation = ref(null);
-    
+
 
 
 
@@ -230,6 +236,14 @@ export default {
       }
     };
 
+
+
+    const navigateToStation = (station) => {
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${station.coordinatesY},${station.coordinatesX}`;
+      window.open(url, '_blank');
+    };
+
+
     onMounted(() => {
       exploreNearbyStations();
     });
@@ -250,6 +264,7 @@ export default {
       hasSearched,
       searchedLocation,
       searchLocation,
+      navigateToStation,
     };
   },
 };
@@ -358,5 +373,24 @@ export default {
 
 .nearby-stations tr:nth-child(even) {
   background-color: #f9f9f9;
+}
+
+.details-button,
+.navigate-button {
+  margin: 5px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.details-button {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.navigate-button {
+  background-color: #2196F3;
+  color: white;
 }
 </style>

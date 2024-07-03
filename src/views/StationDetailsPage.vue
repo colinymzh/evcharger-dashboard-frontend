@@ -143,9 +143,6 @@
     font-size: 18px;
   }
   
-  .loading-spinner {
-    /* Add your spinner styles here */
-  }
   
   .back-button {
     margin-top: 20px;
