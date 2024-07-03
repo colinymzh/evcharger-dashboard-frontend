@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
 import Map from '../views/Map.vue';
 import AvailabilityPage from '../views/AvailabilityPage.vue';
+import StationDetailsPage from '../views/StationDetailsPage.vue';
+
 
 const routes = [
     {
@@ -23,6 +25,11 @@ const routes = [
         path: '/availability/:stationName',
         name: 'Availability',
         component: AvailabilityPage,
+      },
+      {
+        path: '/station/:stationName',
+        name: 'StationDetailsPage',
+        component: StationDetailsPage
       },
   ];
   
