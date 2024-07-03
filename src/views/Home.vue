@@ -50,24 +50,23 @@
 
         </div>
         <div class="bottom-section">
-            <div v-if="!selectedStation" class="prompt-text">
+            <div v-if="!selectedStation && !loading" class="prompt-text">
                 <font-awesome-icon :icon="['fas', 'charging-station']" />
                 Click Station Name to View Charging Station Details
             </div>
-            <StationDetails v-else :station="selectedStation" />
-
-
-            <UsageChartSector v-if="selectedStation" :station="selectedStation" :connectorUsageData="connectorUsageData"
-                :connectorTimePeriodData="connectorTimePeriodData"
-                @fetch-connector-usage-data="(scope) => fetchStationDetails(selectedStation.stationName, scope)" />
-
-            
-            <WeeklyChartSector v-if="selectedStation" :weeklyUsageData="weeklyUsageData" />
-
-            <HeatmapSector v-if="selectedStation && weeklyHourlyUsageData"
-            :weeklyHourlyUsageData="weeklyHourlyUsageData" />
-
-            <CityChartSector v-if="selectedStation && cityWeeklyUsageData" :cityWeeklyUsageData="cityWeeklyUsageData" />
+            <div v-else-if="loading" class="loading-overlay">
+                <div class="loading-spinner"></div>
+                <p>Loading station details...</p>
+            </div>
+            <template v-else>
+                <StationDetails :station="selectedStation" />
+                <UsageChartSector :station="selectedStation" :connectorUsageData="connectorUsageData"
+                    :connectorTimePeriodData="connectorTimePeriodData" :currentScope="currentScope"
+                    @fetch-connector-usage-data="updateScope" />
+                <WeeklyChartSector :weeklyUsageData="weeklyUsageData" />
+                <HeatmapSector v-if="weeklyHourlyUsageData" :weeklyHourlyUsageData="weeklyHourlyUsageData" />
+                <CityChartSector v-if="cityWeeklyUsageData" :cityWeeklyUsageData="cityWeeklyUsageData" />
+            </template>
         </div>
 
 
@@ -133,6 +132,8 @@ export default {
             weeklyUsageData: null,
             cityWeeklyUsageData: null,
             weeklyHourlyUsageData: null,
+            loading: false,
+            currentScope: 5,
         };
     },
     computed: {
@@ -148,9 +149,12 @@ export default {
     },
     methods: {
         async fetchStationDetails(stationName, scope = 5) {
+            this.loading = true;
             this.connectorUsageData = null;
             this.cityWeeklyUsageData = null;
             this.weeklyHourlyUsageData = null;
+            this.selectedStation = null;
+            this.currentScope = scope;  // 更新 currentScope
 
             try {
                 const [stationData, usageData, timePeriodData, weeklyUsageData, cityWeeklyUsageData, weeklyHourlyUsageData] = await Promise.all([
@@ -170,6 +174,14 @@ export default {
                 this.weeklyHourlyUsageData = weeklyHourlyUsageData;
             } catch (error) {
                 console.error('Failed to fetch station details:', error);
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        updateScope(newScope) {
+            if (this.selectedStation) {
+                this.fetchStationDetails(this.selectedStation.stationName, newScope);
             }
         },
 
@@ -460,5 +472,38 @@ button:hover {
     font-size: 16px;
     margin: auto;
     color: #277734;
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 </style>

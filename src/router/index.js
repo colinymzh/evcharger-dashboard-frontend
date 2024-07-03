@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
-import Navigation from '../views/Navigation.vue';
+import Map from '../views/Map.vue';
 import AvailabilityPage from '../views/AvailabilityPage.vue';
 
 const routes = [
@@ -14,9 +14,9 @@ const routes = [
       component: Home,
     },
     {
-        path: '/navigation',
-        name: 'Navigation',
-        component: Navigation,
+        path: '/map',
+        name: 'Map',
+        component: Map,
       },
 
       {

@@ -1,10 +1,9 @@
-<!-- Navigation.vue -->
 <template>
     <div>
       <button @click="exploreNearbyStations" class="explore-button">Explore nearby charging stations</button>
     </div>
   
-    <div class="navigation">
+    <div class="map">
       <Map />
     </div>
   </template>
@@ -13,7 +12,7 @@
   import Map from '@/components/Map.vue';
   
   export default {
-    name: 'Navigation',
+    name: 'Map',
     components: {
       Map,
     },
@@ -21,7 +20,7 @@
   </script>
   
   <style scoped>
-  .navigation {
+  .map {
     padding: 2rem;
   }
   

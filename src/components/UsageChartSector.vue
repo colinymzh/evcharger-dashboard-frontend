@@ -4,7 +4,7 @@
       <h2>Connector Usage Percentage</h2>
       <div class="scope-selector">
         <label for="scope-select">Select Scope (Days):</label>
-        <select id="scope-select" v-model="selectedScope" @change="onScopeChange" class="scope-select">
+        <select id="scope-select" v-model="localScope" @change="onScopeChange" class="scope-select">
           <option value="5">5</option>
           <option value="10">10</option>
           <option value="20">20</option>
@@ -18,8 +18,7 @@
     </div>
     <div v-else-if="connectorUsageData === null">Loading...</div>
 
-
-    <!-- 新添加的时间段使用率图表 -->
+    <!-- 时间段使用率图表 -->
     <div v-if="connectorTimePeriodData && connectorTimePeriodData.length > 0">
       <h2>Connector Usage Percentage by Time Period</h2>
       <div class="chart-container">
@@ -41,11 +40,6 @@ export default {
     ConnectorUsageChart,
     ConnectorTimePeriodChart,
   },
-  data() {
-    return {
-      selectedScope: 5, // 默认值为 5
-    };
-  },
   props: {
     station: {
       type: Object,
@@ -59,10 +53,24 @@ export default {
       type: Array,
       default: () => [],
     },
+    currentScope: {
+      type: Number,
+      default: 5,
+    },
+  },
+  data() {
+    return {
+      localScope: this.currentScope,
+    };
+  },
+  watch: {
+    currentScope(newScope) {
+      this.localScope = newScope;
+    },
   },
   methods: {
     onScopeChange() {
-      this.$emit('fetch-connector-usage-data', this.selectedScope);
+      this.$emit('fetch-connector-usage-data', parseInt(this.localScope));
     },
   },
 };
