@@ -327,11 +327,8 @@ export default {
     width: 30%;
     padding-left: 20px;
     display: flex;
-    /* 添加这一行 */
     justify-content: center;
-    /* 添加这一行 */
     align-items: center;
-    /* 添加这一行 */
 }
 
 .bottom-section {
@@ -341,7 +338,6 @@ export default {
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* 其他样式保持不变 */
 
 
 .header {

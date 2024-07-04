@@ -74,9 +74,9 @@ export default {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   font-family: Arial, sans-serif;
-  height: 95%; /* 添加这一行以确保填充整个高度 */
-  display: flex; /* 添加这一行以启用flex布局 */
-  flex-direction: column; /* 添加这一行以使子元素按列排列 */
+  height: 95%;
+  display: flex; 
+  flex-direction: column;
 }
 
 h2 {

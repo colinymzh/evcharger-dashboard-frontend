@@ -8,7 +8,29 @@
         placeholder="Enter address, postcode, or destination" />
       <button @click="searchLocation">Search</button>
       <button @click="useCurrentLocation">Use Current Location</button>
+    
+
+    <div class="legend">
+      <div class="legend-item">
+        <span class="legend-color" style="background-color: #4CAF50;"></span>
+        <span class="legend-text">Level 1 (Low Usage)</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background-color: #2196F3;"></span>
+        <span class="legend-text">Level 2 (Medium Usage)</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background-color: #FF9800;"></span>
+        <span class="legend-text">Level 3 (High Usage)</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color" style="background-color: #F44336;"></span>
+        <span class="legend-text">Level 4 (Very High Usage)</span>
+      </div>
     </div>
+
+  </div>
+
     <div class="map-container">
       <l-map ref="map" v-model:zoom="zoom" :center="center">
         <l-tile-layer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"></l-tile-layer>
@@ -392,5 +414,29 @@ export default {
 .navigate-button {
   background-color: #2196F3;
   color: white;
+}
+
+.legend {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+}
+
+.legend-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.legend-text {
+  font-size: 14px;
 }
 </style>

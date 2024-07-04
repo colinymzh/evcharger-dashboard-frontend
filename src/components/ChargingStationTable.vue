@@ -248,13 +248,10 @@ th {
 
 a {
     color: #1e8557;
-    /* 将超链接的颜色设置为你喜欢的颜色 */
     text-decoration: none;
-    /* 可选:移除默认的下划线 */
 }
 
 a:hover {
     text-decoration: underline;
-    /* 可选:在鼠标悬停时添加下划线 */
 }
 </style>

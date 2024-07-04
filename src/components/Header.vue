@@ -52,12 +52,12 @@ nav a.router-link-active {
 
 
 h1 {
-  color: #24af50; /* 设置字体颜色为绿色 */
-  font-family: 'Arial', sans-serif; /* 可选择适合的字体 */
-  font-weight: bold; /* 字体加粗 */
-  text-align: center; /* 文字居中 */
-  margin-top: 20px; /* 上边距，根据布局需求调整 */
-  margin-bottom: 20px; /* 下边距，根据布局需求调整 */
+  color: #24af50;
+  font-family: 'Arial', sans-serif;
+  font-weight: bold; 
+  text-align: center;
+  margin-top: 20px; 
+  margin-bottom: 20px; 
 }
 
 

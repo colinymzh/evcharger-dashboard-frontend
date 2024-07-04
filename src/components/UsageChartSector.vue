@@ -119,15 +119,12 @@ h2 {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-start;
-  /* 从左侧开始排列 */
 }
 
 .chart-container>* {
   flex: 0 0 auto;
   width: 490px;
-  /* 设置每个图表的宽度 */
   height: 350px;
-  /* 设置每个图表的高度 */
   margin-right: 20px;
   margin-bottom: 20px;
 }
