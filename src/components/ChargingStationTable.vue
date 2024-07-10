@@ -7,16 +7,22 @@
                     <th>City</th>
                     <th>Street</th>
                     <th>Postcode</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <tr v-for="station in stations" :key="station.stationName">
                     <td>
-          <a href="#" @click.prevent="$emit('station-clicked', station.stationName)">{{ station.stationName }}</a>
-        </td>
+                        <a href="#" @click.prevent="$emit('station-clicked', station.stationName)">{{ station.stationName }}</a>
+                    </td>
                     <td>{{ station.cityName }}</td>
                     <td>{{ station.street }}</td>
                     <td>{{ station.postcode }}</td>
+                    <td>
+                        <button class="green-button" @click="viewDetails(station.stationName)">
+                            View Details
+                        </button>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -49,7 +55,9 @@ export default {
         };
     },
     methods: {
-
+        viewDetails(stationName) {
+            window.location.href = `http://localhost:8081/station/${stationName}`;
+        },
     },
 };
 </script>
@@ -253,5 +261,23 @@ a {
 
 a:hover {
     text-decoration: underline;
+}
+
+.green-button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+    margin: 2px 2px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.green-button:hover {
+    background-color: #45a049;
 }
 </style>
