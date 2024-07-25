@@ -25,11 +25,18 @@
                 <ChargingEstimator />
             </div>
 
-            <button @click="togglePanel('anotherFeature')" class="toggle-button">
-                {{ isPanelOpen.anotherFeature ? 'Close' : 'Open' }} Route Estimator
+            <button @click="togglePanel('routeEstimator')" class="toggle-button">
+                {{ isPanelOpen.routeEstimator ? 'Close' : 'Open' }} Route Estimator
             </button>
-            <div v-if="isPanelOpen.anotherFeature" class="panel-content">
+            <div v-if="isPanelOpen.routeEstimator" class="panel-content">
                 <RouteEstimator :destination-station="stationName" />
+            </div>
+
+            <button @click="togglePanel('availabilityPredictor')" class="toggle-button">
+                {{ isPanelOpen.availabilityPredictor ? 'Close' : 'Open' }} Availability Predictor
+            </button>
+            <div v-if="isPanelOpen.availabilityPredictor" class="panel-content">
+                <AvailabilityPredictor :station-name="stationName" />
             </div>
         </div>
 
@@ -47,6 +54,8 @@ import HeatmapSector from '@/components/HeatmapSector.vue';
 import CityChartSector from '@/components/CityChartSector.vue';
 import ChargingEstimator from '@/components/ChargingEstimator.vue';
 import RouteEstimator from '@/components/RouteEstimator.vue';
+import AvailabilityPredictor from '@/components/AvailabilityPredictor.vue';
+
 
 const API_BASE_URL = 'http://localhost:8088';
 
@@ -69,7 +78,9 @@ export default {
         HeatmapSector,
         CityChartSector,
         ChargingEstimator,
-        RouteEstimator
+        RouteEstimator,
+        AvailabilityPredictor
+
     },
     setup() {
         const route = useRoute();
@@ -213,7 +224,7 @@ export default {
 .toggle-button {
     width: 100%;
     padding: 10px;
-    background-color: #30c3da;
+    background-color: #8262f6;
     color: white;
     border: none;
     cursor: pointer;

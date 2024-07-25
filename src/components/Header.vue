@@ -5,8 +5,6 @@
       <nav>
         <router-link to="/home">Home</router-link>
         <router-link to="/map">Map</router-link>
-        <router-link to="/statistics">Statistics</router-link>
-        <router-link to="/prediction">Prediction</router-link>
       </nav>
     </header>
   </template>

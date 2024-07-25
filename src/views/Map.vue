@@ -42,7 +42,7 @@
               Average Usage: {{ station.averageUsage.toFixed(2) }}<br>
               Usage Level: {{ station.usageLevel }}<br>
               <button @click="goToStationDetails(station.stationName)" class="details-button">
-                View Details
+                View Details / Predict Availability
               </button>
               <button @click="navigateToStation(station)" class="navigate-button">
                 Navigate to this station
@@ -81,7 +81,7 @@
             <td>{{ station.distance.toFixed(2) }}</td>
             <td>
               <button @click="goToStationDetails(station.stationName)" class="details-button">
-                View Details
+                View Details / Predict Availability
               </button>
               <button @click="navigateToStation(station)" class="navigate-button">
                 Navigate to this station

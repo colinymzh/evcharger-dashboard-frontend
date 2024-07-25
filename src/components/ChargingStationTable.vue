@@ -20,7 +20,7 @@
                     <td>{{ station.postcode }}</td>
                     <td>
                         <button class="green-button" @click="viewDetails(station.stationName)">
-                            View Details
+                            View Details / Predict Availability
                         </button>
                     </td>
                 </tr>
