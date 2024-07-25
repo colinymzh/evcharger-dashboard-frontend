@@ -32,7 +32,7 @@
                 <RouteEstimator :destination-station="stationName" />
             </div>
 
-            <button @click="togglePanel('availabilityPredictor')" class="toggle-button">
+            <button @click="togglePanel('availabilityPredictor')" class="toggle-button-prediction">
                 {{ isPanelOpen.availabilityPredictor ? 'Close' : 'Open' }} Availability Predictor
             </button>
             <div v-if="isPanelOpen.availabilityPredictor" class="panel-content">
@@ -235,6 +235,24 @@ export default {
 }
 
 .toggle-button:first-child {
+    margin-top: 0;
+    border-radius: 8px 8px 0 0;
+}
+
+.toggle-button-prediction {
+    width: 100%;
+    padding: 10px;
+    background-color: #f662b1;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    text-align: center;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+.toggle-button-prediction:first-child {
     margin-top: 0;
     border-radius: 8px 8px 0 0;
 }

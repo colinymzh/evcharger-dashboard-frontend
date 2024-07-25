@@ -76,7 +76,7 @@ export default {
             const dayOfWeek = date.getDay();
             const hour = parseInt(selectedTime.value.split(':')[0]);
 
-            const url = new URL('http://localhost:8088/prediction');
+            const url = new URL('http://localhost:8088/prediction/weather');
             url.searchParams.append('stationName', props.stationName);
             url.searchParams.append('date', selectedDate.value);
             url.searchParams.append('dayOfWeek', dayOfWeek.toString());
