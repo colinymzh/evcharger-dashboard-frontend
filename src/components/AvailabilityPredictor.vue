@@ -1,3 +1,8 @@
+
+
+
+
+
 <template>
     <div class="availability-predictor">
         <h3>Availability Predictor for {{ stationName }}</h3>
@@ -17,9 +22,19 @@
                 </option>
             </select>
         </div>
-        <button @click="predictAvailability" :disabled="!selectedDate || !selectedTime">
+        <button @click="predictAvailability" :disabled="!selectedDate || !selectedTime || isLoading">
             Predict Availability
         </button>
+
+        <!-- Overlay and Centered Progress Bar -->
+        <div v-if="isLoading" class="overlay">
+            <div class="centered-progress-bar">
+                <div class="progress-bar-container">
+                    <div class="progress-bar" :style="{ width: progressWidth + '%' }"></div>
+                </div>
+                <div class="progress-text">Loading... {{ progressWidth }}%</div>
+            </div>
+        </div>
 
         <!-- Modal -->
         <div v-if="showModal" class="modal">
@@ -68,6 +83,9 @@ export default {
         const selectedTime = ref('');
         const predictions = ref([]);
         const showModal = ref(false);
+        const isLoading = ref(false);
+        const progressWidth = ref(0);
+
 
         const getProbabilityWidth = (line) => {
             const probability = parseFloat(line.split(':')[1]);
@@ -100,6 +118,16 @@ export default {
         };
 
         const predictAvailability = async () => {
+            isLoading.value = true;
+            progressWidth.value = 0;
+            
+            // 模拟进度条增长
+            const progressInterval = setInterval(() => {
+                if (progressWidth.value < 90) {
+                    progressWidth.value += 10;
+                }
+            }, 300);
+
             const date = new Date(selectedDate.value);
             const dayOfWeek = date.getDay();
             const hour = parseInt(selectedTime.value.split(':')[0]);
@@ -121,11 +149,25 @@ export default {
 
                 // 解析返回的数据
                 predictions.value = parseConnectorData(data);
-                showModal.value = true;
+                
+                // 停止进度条并显示模态框
+                clearInterval(progressInterval);
+                progressWidth.value = 100;
+                setTimeout(() => {
+                    isLoading.value = false;
+                    showModal.value = true;
+                }, 200);
             } catch (error) {
                 console.error('There was a problem with the fetch operation:', error.message);
                 predictions.value = [["Error occurred while fetching prediction"]];
-                showModal.value = true;
+                
+                // 停止进度条并显示错误模态框
+                clearInterval(progressInterval);
+                progressWidth.value = 100;
+                setTimeout(() => {
+                    isLoading.value = false;
+                    showModal.value = true;
+                }, 200);
             }
         };
 
@@ -165,7 +207,9 @@ export default {
             formatDate,
             getProbabilityWidth,
             getAvailabilityLabel,
-            formatHour
+            formatHour,
+            isLoading,
+            progressWidth
         };
     }
 };
@@ -210,10 +254,51 @@ button:disabled {
     cursor: not-allowed;
 }
 
+/* Overlay and Centered Progress Bar styles */
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.centered-progress-bar {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.progress-bar-container {
+    width: 300px;
+    height: 20px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #4CAF50;
+    transition: width 0.3s ease-in-out;
+}
+
+.progress-text {
+    text-align: center;
+    font-weight: bold;
+}
+
 /* Modal styles */
 .modal {
     position: fixed;
-    z-index: 1;
+    z-index: 1001;
     left: 0;
     top: 0;
     width: 100%;
@@ -261,48 +346,47 @@ button:disabled {
     font-size: 1.2em;
 }
 
-
-
 .probability-item {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
 }
 
 .label-container {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
 }
 
 .class-label {
-  font-weight: bold;
-  color: #000000;
+    font-weight: bold;
+    color: #000000;
 }
 
 .probability-text {
-  color: #000000;
+    color: #000000;
 }
 
 .probability-bar-container {
-  width: 100%;
-  background-color: #f0f0f0;
-  border-radius: 3px;
-  overflow: hidden;
+    width: 100%;
+    background-color: #f0f0f0;
+    border-radius: 3px;
+    overflow: hidden;
 }
 
 .probability-value {
-  height: 20px;
-  color: transparent;
-  text-align: right;
-  transition: width 0.5s ease-in-out;
+    height: 20px;
+    color: transparent;
+    text-align: right;
+    transition: width 0.5s ease-in-out;
 }
 
 .probability-value.available {
-  background-color: #2ecc71; /* 绿色 */
+    background-color: #2ecc71;
 }
 
 .probability-value.unavailable {
-  background-color: #e74c3c; /* 红色 */
+    background-color: #e74c3c;
 }
+
 </style>
