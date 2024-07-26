@@ -208,7 +208,7 @@ export default {
     left: 20px;
     top: 150px;
     /* 调整顶部位置 */
-    width: 400px;
+    width: 350px;
     z-index: 100;
     transition: all 0.3s ease;
     max-height: calc(100vh - 100px);

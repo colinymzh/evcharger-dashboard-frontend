@@ -28,11 +28,29 @@
                 <h4>Availability Prediction</h4>
                 <p>Predicted availability for {{ stationName }} on {{ formatDate(selectedDate) }} at {{ selectedTime }}:
                 </p>
-                <p><strong>{{ prediction }}</strong></p>
+                <div v-for="(connector, index) in predictions" :key="index" class="connector-prediction">
+                    <h5 class="connector-title">{{ connector[0] }}</h5>
+                    <div class="probability-container">
+                        <p class="probability-label">{{ connector[1] }}</p>
+                        <div v-for="(line, lineIndex) in connector.slice(2)" :key="lineIndex" class="probability-item">
+                            <div class="label-container">
+                                <span class="class-label">{{ getAvailabilityLabel(line.split(':')[0]) }}:</span>
+                                <span class="probability-text">{{ line.split(':')[1] }}</span>
+                            </div>
+                            <div class="probability-bar-container">
+                                <div class="probability-value"
+                                    :class="getAvailabilityLabel(line.split(':')[0]).toLowerCase().replace(' ', '-')"
+                                    :style="{ width: getProbabilityWidth(line) }">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </template>
+
 
 <script>
 import { ref, computed } from 'vue';
@@ -48,9 +66,19 @@ export default {
     setup(props) {
         const selectedDate = ref('');
         const selectedTime = ref('');
-        const prediction = ref('');
+        const predictions = ref([]);
         const showModal = ref(false);
 
+        const getProbabilityWidth = (line) => {
+            const probability = parseFloat(line.split(':')[1]);
+            return `${probability * 100}%`;
+        };
+
+        const getAvailabilityLabel = (classLabel) => {
+            if (classLabel.trim() === 'Class 0') return 'Unavailable';
+            if (classLabel.trim() === 'Class 1') return 'Available';
+            return classLabel; // 如果不匹配，返回原始标签
+        };
         const availableDates = computed(() => {
             const dates = [];
             const today = new Date();
@@ -89,28 +117,60 @@ export default {
                     throw new Error('Network response was not ok');
                 }
                 const data = await response.json();
-                prediction.value = data.prediction; // 假设后端返回的 JSON 中有一个 'prediction' 字段
+                console.log(data);
+
+                // 解析返回的数据
+                predictions.value = parseConnectorData(data);
                 showModal.value = true;
             } catch (error) {
                 console.error('There was a problem with the fetch operation:', error.message);
-                prediction.value = "Error occurred while fetching prediction";
+                predictions.value = [["Error occurred while fetching prediction"]];
                 showModal.value = true;
             }
+        };
+
+        const parseConnectorData = (data) => {
+            const connectors = [];
+            let currentConnector = [];
+            let connectorNumber = 1;
+
+            for (const line of data) {
+                if (line.trim() === 'Probability:') {
+                    if (currentConnector.length > 0) {
+                        connectors.push(currentConnector);
+                        currentConnector = [];
+                    }
+                    currentConnector.push(`Connector ${connectorNumber}`);
+                    currentConnector.push(line.trim());
+                    connectorNumber++;
+                } else if (line.trim() !== '') {
+                    currentConnector.push(line.trim());
+                }
+            }
+
+            if (currentConnector.length > 0) {
+                connectors.push(currentConnector);
+            }
+
+            return connectors;
         };
 
         return {
             selectedDate,
             selectedTime,
-            prediction,
+            predictions,
             predictAvailability,
             showModal,
             availableDates,
             formatDate,
+            getProbabilityWidth,
+            getAvailabilityLabel,
             formatHour
         };
     }
 };
 </script>
+
 
 <style scoped>
 .availability-predictor {
@@ -185,5 +245,64 @@ button:disabled {
     color: black;
     text-decoration: none;
     cursor: pointer;
+}
+
+.connector-prediction {
+    background-color: #f0f0f0;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.connector-title {
+    color: #2c3e50;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+}
+
+
+
+.probability-item {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+}
+
+.label-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.class-label {
+  font-weight: bold;
+  color: #000000;
+}
+
+.probability-text {
+  color: #000000;
+}
+
+.probability-bar-container {
+  width: 100%;
+  background-color: #f0f0f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.probability-value {
+  height: 20px;
+  color: transparent;
+  text-align: right;
+  transition: width 0.5s ease-in-out;
+}
+
+.probability-value.available {
+  background-color: #2ecc71; /* 绿色 */
+}
+
+.probability-value.unavailable {
+  background-color: #e74c3c; /* 红色 */
 }
 </style>
