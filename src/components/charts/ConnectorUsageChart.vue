@@ -1,9 +1,14 @@
 <template>
   <div class="connector-usage-chart">
+    <!-- Display the title with the connector ID -->
     <h2 class="title">Connector {{ connectorId }} Usage</h2>
+
+    <!-- Render the chart if data is available -->
     <div v-if="chartData" class="chart-container">
       <LineChart :chartData="chartData" :options="options" />
     </div>
+
+    <!-- Show loading message if data is not yet available -->
     <div v-else class="loading">Loading...</div>
   </div>
 </template>
@@ -53,11 +58,13 @@ export default {
     };
   },
   mounted() {
+    // Prepare the chart data when the component is mounted
     this.prepareChartData();
   },
   methods: {
     prepareChartData() {
       this.chartData = {
+        // Process the usage data for the chart
         labels: this.usageData.map((item) => item.hour),
         datasets: [
           {

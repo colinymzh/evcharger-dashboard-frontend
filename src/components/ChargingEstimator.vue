@@ -42,6 +42,7 @@ export default {
         };
     },
     computed: {
+        // Validate form inputs
         isFormValid() {
             return this.usableCapacity > 0 &&
                 this.currentCharge >= 0 && this.currentCharge <= 100 &&
@@ -51,6 +52,7 @@ export default {
         }
     },
     methods: {
+        // Calculate the charging time
         calculateChargingTime() {
             this.errorMessage = '';
             if (!this.isFormValid) {
@@ -62,15 +64,18 @@ export default {
                 return;
             }
 
+            // Variables for calculation
             const Uc = this.usableCapacity;
             const Pc = this.currentCharge;
             const Tc = this.targetCharge;
             const Cr = this.chargingRate;
 
+            // Calculate charging time in hours
             const d = (Uc * (Tc - Pc)) / (100 * Cr);
             this.estimatedTime = d;
         },
         formatTime(hours) {
+            // Format the calculated time into hours and minutes
             const totalMinutes = Math.round(hours * 60);
             const hrs = Math.floor(totalMinutes / 60);
             const mins = totalMinutes % 60;

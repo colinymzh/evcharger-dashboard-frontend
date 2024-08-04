@@ -2,8 +2,10 @@
     <div class="weekly-chart-sector">
         <h2 class="section-title">Weekly Usage</h2>
         <div class="charts-container">
+            <!-- Loop through each connector's weekly usage data -->
             <div v-for="connector in weeklyUsageData" :key="connector.connectorId" class="chart-wrapper">
                 <h3 class="connector-title">Connector {{ connector.connectorId }}</h3>
+                <!-- Render a BarChart component for each connector -->
                 <BarChart :chartData="getChartData(connector.weeklyUsage)" />
             </div>
         </div>
@@ -22,6 +24,7 @@ export default {
         weeklyUsageData: Array,
     },
     methods: {
+        // Method to prepare chart data for each connector
         getChartData(weeklyUsage) {
             const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
             const data = weeklyUsage.map(day => day.averageUsage);
@@ -29,6 +32,7 @@ export default {
             const color = 'rgba(75, 192, 192, 0.6)';
             const borderColor = 'rgba(75, 192, 192, 1)';
 
+            // Return the chart configuration object
             return {
                 labels: labels,
                 datasets: [{
@@ -94,7 +98,6 @@ export default {
     text-align: center;
 }
 
-/* 自定义滚动条样式 */
 .charts-container::-webkit-scrollbar {
     height: 8px;
 }

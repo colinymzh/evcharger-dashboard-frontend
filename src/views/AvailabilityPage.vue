@@ -1,16 +1,20 @@
 <template>
   <div>
     <h1>Availability for {{ stationName }}</h1>
+    <!-- Date selection input -->
     <div>
       <label for="date-input">Select Date:</label>
       <input type="date" id="date-input" v-model="selectedDate" @change="fetchAvailability" />
     </div>
+    <!-- Prompt to select a date if not selected -->
     <div v-if="!selectedDate" class="date-prompt">
       Please select a date to check availability.
     </div>
+    <!-- Message when no data is available for the selected date -->
     <div v-else-if="availability.length === 0" class="no-data-prompt">
       No availability data found for the selected date.
     </div>
+    <!-- Availability table -->
     <table v-else class="availability-table">
       <thead>
         <tr>
@@ -23,6 +27,7 @@
       <tbody>
         <tr v-for="hour in 24" :key="hour">
           <td>{{ hour - 1 }}</td>
+          <!-- Cell for each connector's availability -->
           <td v-for="connectorId in connectorIds" :key="connectorId">
             <span :class="{
               'available': getAvailabilityForHourAndConnector(hour - 1, connectorId) === 'Yes',
@@ -32,6 +37,8 @@
         </tr>
       </tbody>
     </table>
+
+    <!-- Availability charts -->
     <div v-if="availability.length > 0" class="charts-container">
       <div v-for="connectorId in connectorIds" :key="connectorId" class="chart-wrapper"
         v-memo="[connectorId, availability]">
@@ -108,10 +115,12 @@ export default {
     };
   },
   created() {
+    // Get station name from route parameters
     this.stationName = this.$route.params.stationName;
   },
 
   methods: {
+    // Fetch availability data from the server
     async fetchAvailability() {
       try {
         const response = await axios.get(`http://localhost:8088/availability/station`, {
@@ -121,17 +130,22 @@ export default {
           },
         });
         this.availability = response.data;
+        // Extract unique connector IDs
         this.connectorIds = [...new Set(response.data.map(item => item.connectorId))];
       } catch (error) {
         console.error('Failed to fetch availability:', error);
       }
     },
+
+    // Get availability status for a specific hour and connector
     getAvailabilityForHourAndConnector(hour, connectorId) {
       const item = this.availability.find(
         item => item.hour === hour && item.connectorId === connectorId
       );
       return item ? (item.isAvailable ? 'Yes' : 'No') : '-';
     },
+
+    // Prepare chart data for a specific connector
     getChartDataForConnector(connectorId) {
       const data = this.availability
         .filter(item => item.connectorId === connectorId)
@@ -149,6 +163,8 @@ export default {
         }]
       };
     },
+
+    // Generate a random color for chart points
     getRandomColor() {
       const letters = '0123456789ABCDEF';
       let color = '#';

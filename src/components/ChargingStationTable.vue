@@ -1,5 +1,6 @@
 <template>
     <div>
+        <!-- Table to display charging stations -->
         <table>
             <thead>
                 <tr>
@@ -11,14 +12,18 @@
                 </tr>
             </thead>
             <tbody>
+                <!-- Loop through stations and display their information -->
                 <tr v-for="station in stations" :key="station.stationName">
                     <td>
-                        <a href="#" @click.prevent="$emit('station-clicked', station.stationName)">{{ station.stationName }}</a>
+                        <!-- Clickable station name that emits an event -->
+                        <a href="#" @click.prevent="$emit('station-clicked', station.stationName)">{{
+                            station.stationName }}</a>
                     </td>
                     <td>{{ station.cityName }}</td>
                     <td>{{ station.street }}</td>
                     <td>{{ station.postcode }}</td>
                     <td>
+                        <!-- Button to view details or predict availability -->
                         <button class="green-button" @click="viewDetails(station.stationName)">
                             View Details / Predict Availability
                         </button>
@@ -27,6 +32,7 @@
             </tbody>
         </table>
 
+        <!-- Component to display station details -->
         <StationDetails :station="selectedStation" />
     </div>
 </template>
@@ -55,6 +61,7 @@ export default {
         };
     },
     methods: {
+        // Method to navigate to station details page
         viewDetails(stationName) {
             window.location.href = `http://localhost:8081/station/${stationName}`;
         },

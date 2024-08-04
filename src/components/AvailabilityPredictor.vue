@@ -1,11 +1,8 @@
-
-
-
-
-
 <template>
     <div class="availability-predictor">
         <h3>Availability Predictor for {{ stationName }}</h3>
+
+        <!-- Date selection input -->
         <div class="input-group">
             <label for="predictionDate">Select Date:</label>
             <select id="predictionDate" v-model="selectedDate">
@@ -14,6 +11,8 @@
                 </option>
             </select>
         </div>
+
+        <!-- Time selection input -->
         <div class="input-group">
             <label for="predictionTime">Select Time:</label>
             <select id="predictionTime" v-model="selectedTime">
@@ -22,11 +21,13 @@
                 </option>
             </select>
         </div>
+
+        <!-- Prediction button -->
         <button @click="predictAvailability" :disabled="!selectedDate || !selectedTime || isLoading">
             Predict Availability
         </button>
 
-        <!-- Overlay and Centered Progress Bar -->
+        <!-- Loading overlay with progress bar -->
         <div v-if="isLoading" class="overlay">
             <div class="centered-progress-bar">
                 <div class="progress-bar-container">
@@ -36,7 +37,7 @@
             </div>
         </div>
 
-        <!-- Modal -->
+        <!-- Results modal -->
         <div v-if="showModal" class="modal">
             <div class="modal-content">
                 <span class="close" @click="showModal = false">&times;</span>
@@ -79,6 +80,7 @@ export default {
         }
     },
     setup(props) {
+        // Reactive state variables
         const selectedDate = ref('');
         const selectedTime = ref('');
         const predictions = ref([]);
@@ -86,17 +88,20 @@ export default {
         const isLoading = ref(false);
         const progressWidth = ref(0);
 
-
+        // Calculate the width of the probability bar
         const getProbabilityWidth = (line) => {
             const probability = parseFloat(line.split(':')[1]);
             return `${probability * 100}%`;
         };
 
+        // Convert class labels to human-readable format
         const getAvailabilityLabel = (classLabel) => {
             if (classLabel.trim() === 'Class 0') return 'Unavailable';
             if (classLabel.trim() === 'Class 1') return 'Available';
-            return classLabel; // 如果不匹配，返回原始标签
+            return classLabel; 
         };
+
+        // Compute available dates for the next 7 days
         const availableDates = computed(() => {
             const dates = [];
             const today = new Date();
@@ -108,20 +113,23 @@ export default {
             return dates;
         });
 
+        // Format date for display
         const formatDate = (dateString) => {
             const date = new Date(dateString);
             return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
         };
 
+        // Format hour for display
         const formatHour = (hour) => {
             return `${hour.toString().padStart(2, '0')}:00`;
         };
 
+        // Main function to predict availability
         const predictAvailability = async () => {
             isLoading.value = true;
             progressWidth.value = 0;
-            
-            // 模拟进度条增长
+
+            // Simulate progress bar growth
             const progressInterval = setInterval(() => {
                 if (progressWidth.value < 90) {
                     progressWidth.value += 10;
@@ -132,6 +140,7 @@ export default {
             const dayOfWeek = date.getDay();
             const hour = parseInt(selectedTime.value.split(':')[0]);
 
+            // Construct URL for API request
             const url = new URL('http://localhost:8088/prediction/weather');
             url.searchParams.append('stationName', props.stationName);
             url.searchParams.append('date', selectedDate.value);
@@ -147,10 +156,10 @@ export default {
                 const data = await response.json();
                 console.log(data);
 
-                // 解析返回的数据
+                // Parse the returned data
                 predictions.value = parseConnectorData(data);
-                
-                // 停止进度条并显示模态框
+
+                // Stop progress bar and show modal
                 clearInterval(progressInterval);
                 progressWidth.value = 100;
                 setTimeout(() => {
@@ -160,8 +169,8 @@ export default {
             } catch (error) {
                 console.error('There was a problem with the fetch operation:', error.message);
                 predictions.value = [["Error occurred while fetching prediction"]];
-                
-                // 停止进度条并显示错误模态框
+
+                // Stop progress bar and show error modal
                 clearInterval(progressInterval);
                 progressWidth.value = 100;
                 setTimeout(() => {
@@ -171,6 +180,7 @@ export default {
             }
         };
 
+        // Parse the connector data from API response
         const parseConnectorData = (data) => {
             const connectors = [];
             let currentConnector = [];
@@ -197,6 +207,7 @@ export default {
             return connectors;
         };
 
+        // Return reactive variables and functions
         return {
             selectedDate,
             selectedTime,
@@ -388,5 +399,4 @@ button:disabled {
 .probability-value.unavailable {
     background-color: #e74c3c;
 }
-
 </style>

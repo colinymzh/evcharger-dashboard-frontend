@@ -1,9 +1,11 @@
 <template>
     <div class="heatmap-sector">
         <h3>Weekly Hourly Usage Heatmap</h3>
+        <!-- Loop through each connector's data to create individual heatmaps -->
         <div v-for="connector in heatmapData" :key="connector.connectorId" class="connector-heatmap">
             <h4>Connector {{ connector.connectorId }}</h4>
             <div class="chart-container">
+                <!-- Canvas element for each heatmap -->
                 <canvas :ref="'heatmap-' + connector.connectorId"></canvas>
             </div>
         </div>
@@ -28,6 +30,7 @@ export default {
         }
     },
     computed: {
+        // Process the raw data into a format suitable for heatmap visualization
         heatmapData() {
             return this.weeklyHourlyUsageData.map(connector => {
                 const data = connector.weeklyHourlyUsage.flatMap((day, dayIndex) => {
@@ -40,6 +43,7 @@ export default {
                         { start: 20, end: 24 }
                     ];
 
+                    // Calculate average usage for each time slot
                     return timeSlots.map((slot, slotIndex) => {
                         const slotHours = day.hourlyUsage.filter(hour =>
                             hour.hour >= slot.start && hour.hour < slot.end
@@ -62,12 +66,14 @@ export default {
         }
     },
     mounted() {
+        // Create heatmaps after the component is mounted and DOM is updated
         this.$nextTick(() => {
             this.createHeatmaps();
         });
     },
     methods: {
         createHeatmaps() {
+            // Create a heatmap for each connector
             this.heatmapData.forEach(connector => {
                 const ctx = this.$refs[`heatmap-${connector.connectorId}`][0];
                 const chart = new Chart(ctx, {
@@ -80,7 +86,7 @@ export default {
                                 const value = context.raw.value;
                                 return `rgba(0, 128, 0, ${value})`;
                             },
-                            pointRadius: 15, // 减小点的大小
+                            pointRadius: 15,
                             pointHoverRadius: 17,
                         }]
                     },
@@ -142,6 +148,7 @@ export default {
                         },
                         plugins: {
                             tooltip: {
+                                // Custom tooltip to display day, time, and average usage
                                 callbacks: {
                                     label(context) {
                                         const v = context.raw;
@@ -163,7 +170,7 @@ export default {
                             padding: {
                                 top: 10,
                                 right: 10,
-                                bottom: 20, // 增加底部填充以显示 x 轴标签
+                                bottom: 20, 
                                 left: 10
                             }
                         }
@@ -174,6 +181,7 @@ export default {
         },
     },
     beforeUnmount() {
+        // Cleanup: destroy all chart instances when the component is unmounted
         this.charts.forEach(chart => chart.destroy());
     }
 }

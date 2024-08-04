@@ -5,6 +5,8 @@
             <div class="loading-spinner"></div>
             <p>Loading station details...</p>
         </div>
+
+        <!-- Station details and charts (shown when data is loaded) -->
         <template v-else-if="stationDetails">
             <StationDetails :station="stationDetails" />
             <UsageChartSector :station="stationDetails" :connectorUsageData="connectorUsageData"
@@ -56,9 +58,10 @@ import ChargingEstimator from '@/components/ChargingEstimator.vue';
 import RouteEstimator from '@/components/RouteEstimator.vue';
 import AvailabilityPredictor from '@/components/AvailabilityPredictor.vue';
 
-
+// API base URL
 const API_BASE_URL = 'http://localhost:8088';
 
+// Helper function to fetch data from API
 const fetchData = async (url, params = {}) => {
     try {
         const response = await axios.get(url, { params });
@@ -83,8 +86,11 @@ export default {
 
     },
     setup() {
+        // Get route and router instances
         const route = useRoute();
         const router = useRouter();
+
+        // Reactive references for component state
         const stationName = ref(route.params.stationName);
         const stationDetails = ref(null);
         const loading = ref(true);
@@ -96,6 +102,7 @@ export default {
         const weeklyHourlyUsageData = ref(null);
         const currentScope = ref(5);
 
+        // Function to fetch all station details
         const fetchStationDetails = async (scope = 5) => {
             loading.value = true;
             try {
@@ -115,6 +122,7 @@ export default {
                     fetchData(`${API_BASE_URL}/availability/station/weekly-hourly-usage`, { stationName: stationName.value })
                 ]);
 
+                // Update component state with fetched data
                 stationDetails.value = stationData;
                 connectorUsageData.value = usageData;
                 connectorTimePeriodData.value = timePeriodData;
@@ -130,25 +138,31 @@ export default {
             }
         };
 
+        // Function to update the scope and refetch data
         const updateScope = (newScope) => {
             fetchStationDetails(newScope);
         };
 
+        // Function to navigate back to the map
         const goBackToMap = () => {
             router.push('/map');
         };
 
+        // Fetch station details when component is mounted
         onMounted(() => fetchStationDetails());
 
+        // Reactive reference for panel open states
         const isPanelOpen = ref({
             chargingEstimator: false,
             routeEstimator: false
         });
 
+        // Function to toggle panel open/close state
         const togglePanel = (panelName) => {
             isPanelOpen.value[panelName] = !isPanelOpen.value[panelName];
         };
 
+        // Return reactive references and functions to be used in the template
         return {
             stationName,
             stationDetails,
@@ -172,7 +186,6 @@ export default {
 <style scoped>
 .station-details-page {
     padding: 20px 20px 20px 380px;
-    /* 增加左侧padding，为浮动面板留出更多空间 */
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
@@ -207,16 +220,13 @@ export default {
     position: fixed;
     left: 20px;
     top: 150px;
-    /* 调整顶部位置 */
     width: 350px;
     z-index: 100;
     transition: all 0.3s ease;
     max-height: calc(100vh - 100px);
-    /* 设置最大高度，留出一些空间 */
     display: flex;
     flex-direction: column;
     background-color: #f0f0f0;
-    /* 添加背景色 */
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -264,16 +274,13 @@ export default {
     padding: 15px;
     flex-grow: 1;
     overflow-y: auto;
-    /* 允许内容滚动 */
     max-height: calc(100vh - 200px);
-    /* 限制最大高度 */
 }
 
 .panel-content:last-child {
     border-radius: 0 0 8px 8px;
 }
 
-/* 自定义滚动条样式 */
 .panel-content::-webkit-scrollbar {
     width: 8px;
 }
@@ -291,7 +298,6 @@ export default {
     background: #555;
 }
 
-/* 响应式设计 */
 @media (max-width: 1200px) {
     .station-details-page {
         padding: 10px;
@@ -305,7 +311,6 @@ export default {
         bottom: 0;
         width: 100%;
         max-height: 50vh;
-        /* 在移动设备上限制最大高度 */
         border-radius: 8px 8px 0 0;
     }
 
@@ -323,11 +328,9 @@ export default {
 
     .station-details-page {
         margin-bottom: 60px;
-        /* 为底部按钮留出空间 */
     }
 }
 
-/* 添加一些通用的样式来改善整体布局 */
 h1 {
     color: #333;
     margin-bottom: 20px;

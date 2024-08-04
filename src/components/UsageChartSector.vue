@@ -18,7 +18,6 @@
     </div>
     <div v-else-if="connectorUsageData === null">Loading...</div>
 
-    <!-- 时间段使用率图表 -->
     <div v-if="connectorTimePeriodData && connectorTimePeriodData.length > 0">
       <h2>Connector Usage Percentage by Time Period</h2>
       <div class="chart-container">
@@ -60,16 +59,19 @@ export default {
   },
   data() {
     return {
+      // Local copy of the scope
       localScope: this.currentScope,
     };
   },
   watch: {
+    // Watch for changes in the currentScope prop
     currentScope(newScope) {
       this.localScope = newScope;
     },
   },
   methods: {
     onScopeChange() {
+      // Emit event to parent component to fetch new data based on selected scope
       this.$emit('fetch-connector-usage-data', parseInt(this.localScope));
     },
   },

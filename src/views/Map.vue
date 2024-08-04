@@ -1,39 +1,44 @@
 <template>
   <div>
+    <!-- Loading overlay -->
     <div v-if="loading" class="loading-overlay">
       <div class="loading-spinner"></div>
     </div>
+    <!-- Search and location controls -->
     <div class="search-container">
       <input v-model="searchQuery" @keyup.enter="searchLocation"
         placeholder="Enter address, postcode, or destination" />
       <button @click="searchLocation">Search</button>
       <button @click="useCurrentLocation">Use Current Location</button>
-    
 
-    <div class="legend">
-      <div class="legend-item">
-        <span class="legend-color" style="background-color: #4CAF50;"></span>
-        <span class="legend-text">Level 1 (Low Usage)</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color" style="background-color: #2196F3;"></span>
-        <span class="legend-text">Level 2 (Medium Usage)</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color" style="background-color: #FF9800;"></span>
-        <span class="legend-text">Level 3 (High Usage)</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color" style="background-color: #F44336;"></span>
-        <span class="legend-text">Level 4 (Very High Usage)</span>
+      <!-- Legend for station usage levels -->
+      <div class="legend">
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #4CAF50;"></span>
+          <span class="legend-text">Level 1 (Low Usage)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #2196F3;"></span>
+          <span class="legend-text">Level 2 (Medium Usage)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #FF9800;"></span>
+          <span class="legend-text">Level 3 (High Usage)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-color" style="background-color: #F44336;"></span>
+          <span class="legend-text">Level 4 (Very High Usage)</span>
+        </div>
       </div>
     </div>
 
-  </div>
-
+    <!-- Map container -->
     <div class="map-container">
       <l-map ref="map" v-model:zoom="zoom" :center="center">
+        <!-- Base map layer -->
         <l-tile-layer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"></l-tile-layer>
+
+        <!-- Markers for charging stations -->
         <l-marker v-for="station in stations" :key="station.stationName"
           :lat-lng="[station.coordinatesY, station.coordinatesX]" :icon="getMarkerIcon(station.usageLevel)">
           <l-popup>
@@ -51,6 +56,7 @@
           </l-popup>
         </l-marker>
 
+        <!-- Marker for searched location -->
         <l-marker v-if="searchedLocation" :lat-lng="searchedLocation">
           <l-popup>
             <div>
@@ -61,6 +67,8 @@
         </l-marker>
       </l-map>
     </div>
+
+    <!-- Nearby stations table -->
     <div v-if="hasSearched && nearbyStations.length > 0" class="nearby-stations">
       <h2>Nearby Charging Stations</h2>
       <table>
@@ -110,6 +118,7 @@ export default {
     LPopup,
   },
   setup() {
+    // Reactive references for component state
     const stations = ref([]);
     const nearbyStations = ref([]);
     const center = ref([56.4907, -4.2026]); // Scotland center
@@ -121,9 +130,7 @@ export default {
     const hasSearched = ref(false);
     const searchedLocation = ref(null);
 
-
-
-
+    // Calculate distance between two points using Haversine formula
     const calculateDistance = (lat1, lon1, lat2, lon2) => {
       const R = 6371; // Radius of the Earth in km
       const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -136,6 +143,7 @@ export default {
       return R * c; // Distance in km
     };
 
+    // Fetch station data and update nearby stations
     const exploreNearbyStations = async () => {
       loading.value = true;
       try {
@@ -149,6 +157,7 @@ export default {
       }
     };
 
+    // Update the list of nearby stations based on current center 
     const updateNearbyStations = () => {
       const [lat, lon] = center.value;
       nearbyStations.value = stations.value.map(station => ({
@@ -159,6 +168,7 @@ export default {
         .slice(0, 10);
     };
 
+    // Create a custom marker icon based on usage level
     const getMarkerIcon = (usageLevel) => {
       const markerHtmlStyles = `
         background-color: ${getColorForUsageLevel(usageLevel)};
@@ -182,6 +192,7 @@ export default {
       });
     };
 
+    // Get color for usage level
     const getColorForUsageLevel = (usageLevel) => {
       switch (usageLevel) {
         case 1: return '#4CAF50';
@@ -192,10 +203,12 @@ export default {
       }
     };
 
+    // Navigate to station details page
     const goToStationDetails = (stationName) => {
       router.push(`/station/${stationName}`);
     };
 
+    // Search for a location and update map
     const searchLocation = async () => {
       if (!searchQuery.value) return;
 
@@ -209,7 +222,7 @@ export default {
           if (map.value) {
             map.value.leafletObject.flyTo(center.value, zoom.value);
           }
-          searchedLocation.value = [parseFloat(lat), parseFloat(lon)]; // 使用新的变量名
+          searchedLocation.value = [parseFloat(lat), parseFloat(lon)]; 
           updateNearbyStations();
           hasSearched.value = true;
         } else {
@@ -223,6 +236,7 @@ export default {
       }
     };
 
+    // Use current location and update map
     const useCurrentLocation = () => {
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(async function (position) {
@@ -234,7 +248,7 @@ export default {
           if (map.value) {
             map.value.leafletObject.flyTo(center.value, zoom.value);
           }
-          searchedLocation.value = [lat, lon]; // 使用新的变量名
+          searchedLocation.value = [lat, lon]; 
 
           try {
             const response = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
@@ -258,18 +272,18 @@ export default {
       }
     };
 
-
-
+    // Open Google Maps directions to the selected station
     const navigateToStation = (station) => {
       const url = `https://www.google.com/maps/dir/?api=1&destination=${station.coordinatesY},${station.coordinatesX}`;
       window.open(url, '_blank');
     };
 
-
+    // Fetch station data on component mount
     onMounted(() => {
       exploreNearbyStations();
     });
 
+    // Return reactive references and methods for use in the template
     return {
       stations,
       nearbyStations,

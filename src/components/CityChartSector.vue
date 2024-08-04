@@ -1,46 +1,53 @@
 <template>
-    <div class="city-chart-sector">
-      <h3>Weekly Usage for {{ cityName }}</h3>
-      <div class="chart-container">
-        <BarChart :chartData="chartData" />
-      </div>
+  <div class="city-chart-sector">
+    <!-- Title displaying the city name -->
+    <h3>Weekly Usage for {{ cityName }}</h3>
+    <div class="chart-container">
+      <!-- Bar chart component, passing in the computed chartData -->
+      <BarChart :chartData="chartData" />
     </div>
-  </template>
-  
-  <script>
-  import BarChart from './charts/BarChart.vue';
-  
-  export default {
-    name: 'CityChartSector',
-    components: {
-      BarChart
+  </div>
+</template>
+
+<script>
+import BarChart from './charts/BarChart.vue';
+
+export default {
+  name: 'CityChartSector',
+  components: {
+    BarChart
+  },
+  props: {
+    cityWeeklyUsageData: {
+      type: Object,
+      required: true
+    }
+  },
+  computed: {
+    // Computed property to get the city name
+    cityName() {
+      return this.cityWeeklyUsageData.cityName;
     },
-    props: {
-      cityWeeklyUsageData: {
-        type: Object,
-        required: true
-      }
-    },
-    computed: {
-      cityName() {
-        return this.cityWeeklyUsageData.cityName;
-      },
-      chartData() {
-        const labels = this.cityWeeklyUsageData.weeklyUsage.map(item => item.dayOfWeek);
-        const data = this.cityWeeklyUsageData.weeklyUsage.map(item => item.averageUsage);
-  
-        return {
-          labels: labels,
-          datasets: [{
-            label: 'Average Usage',
-            data: data,
-            backgroundColor: 'rgba(75, 192, 192, 0.6)'
-          }]
-        };
-      }
+    // Computed property to format data for the chart
+    chartData() {
+      // Extract days of the week for chart labels
+      const labels = this.cityWeeklyUsageData.weeklyUsage.map(item => item.dayOfWeek);
+      // Extract average usage data for chart values
+      const data = this.cityWeeklyUsageData.weeklyUsage.map(item => item.averageUsage);
+
+      // Return formatted data for the chart
+      return {
+        labels: labels,
+        datasets: [{
+          label: 'Average Usage',
+          data: data,
+          backgroundColor: 'rgba(75, 192, 192, 0.6)'
+        }]
+      };
     }
   }
-  </script>
+}
+</script>
 
 <style scoped>
 .city-chart-sector {

@@ -2,6 +2,7 @@
     <div class="home">
         <div class="top-section">
             <div class="left-section">
+                <!-- Search and filter section -->
                 <div class="search-container">
                     <div class="status-message">
                         <font-awesome-icon :icon="['fas', 'charging-station']" />
@@ -9,6 +10,7 @@
                         <button type="button" @click="clearSearchParams">Clear Filter</button>
                     </div>
 
+                    <!-- Search form -->
                     <form @submit.prevent="searchStations">
                         <input type="text" list="cities" v-model="searchParams.cityName" @input="searchStations"
                             placeholder="Select or type a city" />
@@ -24,6 +26,7 @@
                     </form>
                 </div>
 
+                <!-- Table displaying charging stations -->
                 <div class="table-container">
                     <ChargingStationTable :stations="stations" @station-clicked="fetchStationDetails" />
                     <div class="pagination">
@@ -50,14 +53,17 @@
 
         </div>
         <div class="bottom-section">
+            <!-- Prompt when no station is selected -->
             <div v-if="!selectedStation && !loading" class="prompt-text">
                 <font-awesome-icon :icon="['fas', 'charging-station']" />
                 Click Station Name to View Charging Station Details
             </div>
+            <!-- Loading overlay -->
             <div v-else-if="loading" class="loading-overlay">
                 <div class="loading-spinner"></div>
                 <p>Loading station details...</p>
             </div>
+            <!-- Station details and charts when a station is selected -->
             <template v-else>
                 <StationDetails :station="selectedStation" />
                 <UsageChartSector :station="selectedStation" :connectorUsageData="connectorUsageData"
@@ -68,10 +74,6 @@
                 <CityChartSector v-if="cityWeeklyUsageData" :cityWeeklyUsageData="cityWeeklyUsageData" />
             </template>
         </div>
-
-
-
-
     </div>
 </template>
 
@@ -88,9 +90,10 @@ library.add(faChargingStation)
 import CityChartSector from '@/components/CityChartSector.vue';
 import HeatmapSector from '@/components/HeatmapSector.vue';
 
-
+// Define the base URL for API requests
 const API_BASE_URL = 'http://localhost:8088';
 
+// Helper function to fetch data from the API
 const fetchData = async (url, params = {}) => {
     try {
         const response = await axios.get(url, { params });
@@ -137,26 +140,30 @@ export default {
         };
     },
     computed: {
+        // Calculate total pages based on total stations and page size
         totalPages() {
             return Math.ceil(this.totalStations / this.pageSize);
         },
     },
     watch: {
+        // Watch for changes in search parameters and fetch data accordingly
         searchParams: {
             handler: 'fetchData',
             deep: true,
         },
     },
     methods: {
+        // Fetch detailed information for a selected station
         async fetchStationDetails(stationName, scope = 5) {
             this.loading = true;
             this.connectorUsageData = null;
             this.cityWeeklyUsageData = null;
             this.weeklyHourlyUsageData = null;
             this.selectedStation = null;
-            this.currentScope = scope;  // 更新 currentScope
+            this.currentScope = scope;  
 
             try {
+                // Fetch multiple data sets concurrently
                 const [stationData, usageData, timePeriodData, weeklyUsageData, cityWeeklyUsageData, weeklyHourlyUsageData] = await Promise.all([
                     this.fetchStationData(stationName),
                     this.fetchUsageData(stationName, scope),
@@ -166,6 +173,7 @@ export default {
                     this.fetchWeeklyHourlyUsageData(stationName)
                 ]);
 
+                // Update component data with fetched information
                 this.selectedStation = stationData;
                 this.connectorUsageData = usageData;
                 this.connectorTimePeriodData = timePeriodData;
@@ -179,12 +187,14 @@ export default {
             }
         },
 
+        // Update the scope and refetch station details
         updateScope(newScope) {
             if (this.selectedStation) {
                 this.fetchStationDetails(this.selectedStation.stationName, newScope);
             }
         },
 
+        // Helper methods to fetch different types of data
         fetchStationData(stationName) {
             return fetchData(`${API_BASE_URL}/stations/${stationName}`);
         },
@@ -209,7 +219,7 @@ export default {
             return fetchData(`${API_BASE_URL}/availability/station/weekly-hourly-usage`, { stationName });
         },
 
-
+        // Fetch stations data based on current page, page size, and search parameters
         async fetchData() {
             try {
                 const params = {
@@ -227,6 +237,7 @@ export default {
             }
         },
 
+        // Fetch list of cities for the city dropdown
         async fetchCities() {
             try {
                 const cities = await fetchData(`${API_BASE_URL}/sites/cities`);
@@ -236,6 +247,7 @@ export default {
             }
         },
 
+        // Helper method to get search parameters
         getSearchParams() {
             const params = {};
             const { cityName, postcode, supportsFastCharging } = this.searchParams;
@@ -247,6 +259,7 @@ export default {
             return params;
         },
 
+        // Pagination methods
         prevPage() {
             if (this.currentPage > 1) {
                 this.currentPage--;
@@ -293,6 +306,7 @@ export default {
             this.fetchData();
         },
     },
+    // Lifecycle hook to fetch initial data when component is created
     created() {
         this.fetchData();
         this.fetchCities();

@@ -34,6 +34,7 @@
         </tr>
       </thead>
       <tbody>
+        <!-- Loop through each connector and display its details -->
         <tr v-for="connector in station.connectors" :key="connector.connectorId">
           <td>{{ connector.connectorId }}</td>
           <td>{{ connector.maxChargerate }} kW</td>
@@ -58,8 +59,10 @@ export default {
     },
   },
   methods: {
+    // Method to navigate to the availability page for this station
     navigateToAvailabilityPage() {
       const stationName = this.station.stationName;
+      // Use Vue Router to navigate to the availability page with the station name as a parameter
       this.$router.push(`/availability/${stationName}`);
     },
   },
@@ -75,7 +78,7 @@ export default {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   font-family: Arial, sans-serif;
   height: 95%;
-  display: flex; 
+  display: flex;
   flex-direction: column;
 }
 

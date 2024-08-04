@@ -1,6 +1,7 @@
 <template>
     <div class="route-estimator">
         <h3>Route Estimator</h3>
+        <!-- Input form for route estimation -->
         <div class="form-group">
             <label for="startLocation">Starting Point:</label>
             <input id="startLocation" v-model="startLocation"
@@ -25,6 +26,7 @@
         </div>
         <button @click="estimateRoute" class="estimate-btn">Estimate Route</button>
 
+        <!-- Display route information after estimation -->
         <div v-if="routeInfo" class="route-info">
             <h4>Route Information:</h4>
             <p>Distance: {{ (routeInfo.distance / 1000).toFixed(2) }} km</p>
@@ -49,6 +51,7 @@ export default {
         }
     },
     setup(props) {
+        // Reactive references for form inputs
         const startLocation = ref('');
         const destinationStation = ref(props.destinationStation);
         const currentCharge = ref(80);
@@ -56,10 +59,12 @@ export default {
         const energyConsumption = ref(15);
         const routeInfo = ref(null);
 
+        // Watch for changes in the destinationStation prop
         watch(() => props.destinationStation, (newValue) => {
             destinationStation.value = newValue;
         });
 
+        // Function to use the user's current location
         const useCurrentLocation = () => {
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition((position) => {
@@ -70,6 +75,7 @@ export default {
             }
         };
 
+        // Function to geocode an address to coordinates
         const geocodeAddress = async (address) => {
             try {
                 const response = await axios.get(`https://nominatim.openstreetmap.org/search`, {
@@ -92,6 +98,7 @@ export default {
             }
         };
 
+        // Function to estimate the route
         const estimateRoute = async () => {
             try {
                 let lat, lon;
@@ -117,6 +124,7 @@ export default {
             }
         };
 
+        // Computed property to determine if the destination can be reached
         const canReachDestination = computed(() => {
             if (!routeInfo.value) return false;
             const distanceKm = routeInfo.value.distance / 1000;
@@ -125,6 +133,7 @@ export default {
             return availableEnergy >= estimatedConsumption;
         });
 
+        // Helper function to format duration in hours and minutes
         const formatDuration = (seconds) => {
             const hours = Math.floor(seconds / 3600);
             const minutes = Math.floor((seconds % 3600) / 60);
